@@ -1,10 +1,14 @@
-# Performance Analytics
-
-lapply(c("quantmod", "fGarch", "PerformanceAnalytics", "timeSeries"),
+# Access necessary libraries
+lapply(c("quantmod", "timeSeries"),
        require, character.only = TRUE)
 
+# Type tickers
 tickers <- c("AMZN", "GOOGL")
+
+# Type start date
 start_date <- "2020-02-20"
+
+# Set up function
 prices_from_yahoo <- function(y, z){
   # Create an empty variable
   portfolioPrices <- NULL
@@ -32,4 +36,6 @@ prices_from_yahoo <- function(y, z){
   # Show output
   return(portfolioReturns)
 }
+
+# Type variables into function
 prices_from_yahoo(tickers, start_date)
