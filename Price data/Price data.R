@@ -15,24 +15,24 @@ prices_from_yahoo <- function(y, z = NULL, i = NULL){
   portfolioPrices <- NULL
   # Loop for data extraction
   for (Ticker in y){
-    # When neither start date nor end date are defined
+    # Set up statements for start and end dates
     if (is.null(z) && is.null(i)) {
-      # fill the variable with dataset
+      # When neither start date nor end date are defined
       portfolioPrices <- cbind(portfolioPrices,
                                 getSymbols(Ticker, src = "yahoo",
                                           auto.assign=FALSE)[,4])
       } else if (is.null(i)) {
-      # fill the variable with dataset
+      # When only start date is defined
       portfolioPrices <- cbind(portfolioPrices,
                                 getSymbols(Ticker, from = z, src = "yahoo",
                                           auto.assign=FALSE)[,4])
       } else if (is.null(z)) {
-      # fill the variable with dataset
+      # When only end date is defined
       portfolioPrices <- cbind(portfolioPrices,
                                  getSymbols(Ticker, to = i, src = "yahoo",
                                           auto.assign=FALSE)[,4])
       } else { 
-      # fill the variable with dataset
+      # When both start date and end date are defined
       portfolioPrices <- cbind(portfolioPrices,
                                  getSymbols(Ticker, from = z, to = i,
                                           src = "yahoo", 
