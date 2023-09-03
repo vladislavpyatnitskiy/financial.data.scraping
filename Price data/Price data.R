@@ -1,7 +1,7 @@
 # Access necessary libraries
 lapply(c("quantmod", "timeSeries"), require, character.only = TRUE)
 # Type tickers
-tickers <- c("AMZN", "GOOGL")
+tickers <- c("AMZN", "GOOGL", "C")
 
 # Type start date
 start_date <- "2020-02-20"
@@ -55,5 +55,5 @@ prices_from_yahoo <- function(y, z = NULL, i = NULL){
   return(portfolioReturns)
 }
 
-stock_data <- prices_from_yahoo(tickers, start_date)
-stock_data
+stock_data <- prices_from_yahoo(tickers, start_date, end_date)
+head(stock_data)
