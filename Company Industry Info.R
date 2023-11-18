@@ -1,6 +1,10 @@
-info.yahoo <- function(x){ # Function to get info about company type
+c.industry <- function(x){ # Function to get info about company type
   
-  p <- sprintf("https://finance.yahoo.com/quote/%s/profile?p=%s", x, x)
+  l <- NULL # Create list
+  
+  for (n in 1:length(x)){ s <- x[n] # For each security find industry
+  
+  p <- sprintf("https://finance.yahoo.com/quote/%s/profile?p=%s", s, s)
   
   page.p <- read_html(p) # Read HTML & extract necessary info
   
@@ -9,6 +13,11 @@ info.yahoo <- function(x){ # Function to get info about company type
   yahoo.header1 <- tab11 %>% html_nodes('p') %>% html_nodes('span') %>%
     html_text()
   
-  yahoo.header1[4] # Display
+  l <- rbind(l, yahoo.header1[4])} # Add to list
+  
+  colnames(l) <- "Sector" # 
+  rownames(l) <- x #
+  
+  l # Display
 }
-info.yahoo("M") # Test
+c.industry(x = c("AAPL", "NRG", "PVH", "C")) # Test
