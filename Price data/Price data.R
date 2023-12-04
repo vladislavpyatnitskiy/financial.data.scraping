@@ -1,59 +1,33 @@
-# Access necessary libraries
-lapply(c("quantmod", "timeSeries"), require, character.only = TRUE)
-# Type tickers
-tickers <- c("AMZN", "GOOGL", "C")
+lapply(c("quantmod", "timeSeries"), require, character.only = T) # libraries
 
-# Type start date
-start_date <- "2020-02-20"
-
-# Type end date
-end_date <- NULL
-
-# Set up function
-prices_from_yahoo <- function(y, z = NULL, i = NULL){
-  # Create an empty variable
-  portfolioPrices <- NULL
-  # Loop for data extraction
-  for (Ticker in y){
-    # Set up statements for start and end dates
-    if (is.null(z) && is.null(i)) {
+prices.yahoo <- function(y, s = NULL, e = NULL){
+  
+  p <- NULL # Create an empty variable
+  
+  # Loop for data extraction & # Set up statements for start and end dates
+  for (Ticker in y){ if (is.null(s) && is.null(e)) {
+    
       # When neither start date nor end date are defined
-      portfolioPrices <- cbind(portfolioPrices,
-                                getSymbols(Ticker, src = "yahoo",
-                                          auto.assign=FALSE)[,4])
-      } else if (is.null(i)) {
-      # When only start date is defined
-      portfolioPrices <- cbind(portfolioPrices,
-                                getSymbols(Ticker, from = z, src = "yahoo",
-                                          auto.assign=FALSE)[,4])
-      } else if (is.null(z)) {
-      # When only end date is defined
-      portfolioPrices <- cbind(portfolioPrices,
-                                 getSymbols(Ticker, to = i, src = "yahoo",
-                                          auto.assign=FALSE)[,4])
-      } else { 
-      # When both start date and end date are defined
-      portfolioPrices <- cbind(portfolioPrices,
-                                 getSymbols(Ticker, from = z, to = i,
-                                          src = "yahoo", 
-                                          auto.assign=FALSE)[,4])
-    }
+      p <- cbind(p, getSymbols(Ticker, src = "yahoo", auto.assign=F)[,4])
+      
+      } else if (is.null(e)) { # When only start date is defined
+      
+      p <- cbind(p, getSymbols(Ticker, from = s,src="yahoo",auto.assign=F)[,4])
+      
+      } else if (is.null(s)) { # When only end date is defined
+      
+      p <- cbind(p,getSymbols(Ticker,to=e,src="yahoo",auto.assign=F)[,4])
+      
+      } else { # When both start date and end date are defined
+      
+      p<-cbind(p,getSymbols(Ticker,from=s,to=e,src="yahoo",auto.assign=F)[,4])}
   }
-  # Get rid of NAs
-  portfolioPrices <- portfolioPrices[apply(portfolioPrices,1,
-                                           function(x) all(!is.na(x))),]
-  # Put the tickers in data set
-  colnames(portfolioPrices) <- y
-  
-  # Make data discrete
-  portfolioReturns <- ROC(portfolioPrices, type = "discrete")
-  
-  # Make it time series
-  portfolioReturns <-as.timeSeries(portfolioPrices)
-  
-  # Show output
-  return(portfolioReturns)
-}
+  p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
 
-stock_data <- prices_from_yahoo(tickers, start_date, end_date)
-head(stock_data)
+  colnames(p) <- y # Put the tickers in data set
+  
+  r <- as.timeSeries(p) # Make it time series
+  
+  return(r) # Show output
+}
+prices.yahoo(y = "UNM", s = "2022-01-01")
