@@ -1,3 +1,5 @@
+library("rvest") # Library
+
 c.marketcap <- function(x){ # Market Cap Info
   
   new.info <- NULL
@@ -12,18 +14,18 @@ c.marketcap <- function(x){ # Market Cap Info
     
     i <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    s.header <- i[2] # Info about market capitalisation
+    s <- i[grep("Market Cap", i) + 1] # Market Cap Info
     
-    s.header<-read.fwf(textConnection(s.header),widths=c(nchar(s.header)-1,1),
-                       colClasses = "character")
+    s <- read.fwf(textConnection(s), widths = c(nchar(s) - 1, 1),
+                  colClasses = "character")
     
-    if (s.header[1,2] == "M"){ s.header <- as.numeric(s.header[1,1]) / 1000 }
+    if (s[1,2] == "M"){ s <- as.numeric(s[1,1]) / 1000 }
     
-    else if (s.header[1,2] == "T"){ s.header<-as.numeric(s.header[1,1])*1000 }
+    else if (s[1,2] == "T"){ s <- as.numeric(s[1,1]) * 1000 }
     
-    else s.header <- as.numeric(s.header[1,1]) # Format to billion format
+    else s <- as.numeric(s[1,1]) # Format to billion format
     
-    new.info <- rbind.data.frame(new.info, s.header) } # Data Frame 
+    new.info <- rbind.data.frame(new.info, s) } # Data Frame 
   
   rownames(new.info) <- x # Tickers
   colnames(new.info) <- "Marker Cap ($billions)" # Column Name
