@@ -1,6 +1,6 @@
-c.sector <- function(x){ # Function to get info about company type
-  
-  l <- NULL # Create list
+library("rvest") # Library
+
+c.sector <- function(x){ l <- NULL # Create list
   
   for (n in 1:length(x)){ s <- x[n] # For each security find sector
   
@@ -8,13 +8,12 @@ c.sector <- function(x){ # Function to get info about company type
     
     page.p <- read_html(p) # Read HTML & extract necessary info
     
-    price.yahoo1 <- page.p %>% html_nodes('div') %>% .[[1]] -> tab11
+    price.yahoo1 <- page.p %>% html_nodes('div') %>% .[[1]] -> tab
     
-    yahoo.header1 <- tab11 %>% html_nodes('p') %>% html_nodes('span') %>%
-      html_text()
+    y <- tab %>% html_nodes('p') %>% html_nodes('span') %>% html_text()
     
-    l <- rbind(l, yahoo.header1[2])} # Add to list
-  
+    l <- rbind(l, y[grep("Sector", y) + 1]) } # Add to list
+
   colnames(l) <- "Sector" # 
   rownames(l) <- x #
   
