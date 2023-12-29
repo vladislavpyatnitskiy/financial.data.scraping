@@ -1,5 +1,7 @@
+library("rvest") # Library
+
 # Function to Scrape Statistics for Security
-statistics.yahoo <- function(x, transpose = F){ # Security URL
+statistics.yahoo <- function(x, y = 1, transpose = F){ # Security URL
   
   df.s <- NULL # Set up list for infos
   
@@ -9,32 +11,29 @@ statistics.yahoo <- function(x, transpose = F){ # Security URL
     
     s.page <- read_html(s) # Read HTML of page
     
-    s.yahoo <- s.page %>% html_nodes('table') %>% .[[1]] -> tab1 # Assign Table 
+    s.yahoo <- s.page %>% html_nodes('table') %>% .[[y]] -> tab # Assign Table 
     
-    s.header <- tab1 %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    s <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    df.f1 <- NULL # Create lists for ratio names and values
-    df.f2 <- NULL
+    df.f2 <- NULL # Data Frame values
     
-    for (n in 0:(length(s.header) / 2)){ 
+    for (n in 0:(length(s) / 2)){ df.f1 <- NULL # Row Values
       
-      df.f1 <- rbind(df.f1, s.header[(1 + n * 2)]) # Ratio names
+      for (m in seq(2)){ df.f1 <- cbind(df.f1, s[(m + n * 2)]) }
       
-      df.f2 <- rbind(df.f2, s.header[(2 + n * 2)]) } # Ratio values
+      df.f2 <- rbind(df.f2, df.f1) } # Ratio values
     
-    df.f3 <- data.frame(df.f1, df.f2) # Join 
+    df.f2 <- df.f2[-nrow(df.f2),] # Display
     
-    df.f3 <- df.f3[-nrow(df.f3),] # Display
+    rownames(df.f2) <- df.f2[,1] # Assign row names
     
-    rownames(df.f3) <- df.f3[,1] # Assign row names
+    df.f2 <- subset(df.f2, select = -c(1)) # Reduce excess column
     
-    df.f3 <- subset(df.f3, select = -c(1)) # Reduce excess column
+    colnames(df.f2) <- j # Assign column name
     
-    colnames(df.f3) <- j # Assign column name
+    if (is.null(df.s)){ df.s <- df.f2 } else { df.s <- cbind(df.s, df.f2) } }
     
-    if (is.null(df.s)){ df.s <- df.f3 } else { df.s <- cbind(df.s, df.f3) } }
-  
   if (isTRUE(transpose)){ t(df.s) } else { df.s } # Display
 }
 # Test
-statistics.yahoo(x = c("AAPL", "MSFT", "GOOGL", "AMZN", "META"), transpose = F)
+statistics.yahoo(x = c("AAPL", "MSFT", "GOOGL", "AMZN", "META"),1, transpose=F)
