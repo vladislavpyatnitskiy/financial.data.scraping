@@ -1,35 +1,29 @@
-# Function to get info about holders of large positions
-s.holders <- function(x){ 
+library("rvest") # Library
+
+s.holders <- function(x){ # info about holders of large positions
   
-  s <- sprintf("https://finance.yahoo.com/quote/%s/holders?p=%s", x, x) # URL
+  s<-read_html(sprintf("https://finance.yahoo.com/quote/%s/holders?p=%s",x,x))
   
-  s.page <- read_html(s) # Read HTML of page
+  s.yahoo <- s %>% html_nodes('table') %>% .[[2]] -> tab # Assign Table 
   
-  s.yahoo <- s.page %>% html_nodes('table') %>% .[[2]] -> tab1 # Assign Table 
+  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
   
-  s.header <- tab1 %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+  v <- NULL # Create lists to contain variables & Subset excess row
   
-  df.f1 <- NULL # Create lists to contain variables
-  df.f2 <- NULL
-  
-  for (n in 0:(length(s.header) / 5)){ 
+  for (n in 0:(length(y) / 5)){ # Scrape data for holders and portions
     
-    df.f1 <- rbind(df.f1, s.header[(1 + n * 5)]) # Ratio names
-    
-    df.f2 <- rbind(df.f2, s.header[(4 + n * 5)]) } # Ratio values
+    v <- rbind(v,cbind(y[(1+n*5)],read.fwf(textConnection(y[(4 + n * 5)]),
+                                           widths=c(nchar(y[(4 + n * 5)])-1,1),
+                                           colClasses = "character"))) } 
+  v <- v[-nrow(v),][,-ncol(v)] 
   
-  df.f3 <- data.frame(df.f1, df.f2) # Join 
+  v[,2] <- as.numeric(v[,2]) # Change format to numeric
   
-  df.f3 <- df.f3[-nrow(df.f3),] # Subset excess row
+  v[nrow(v) + 1,] = c("Others", 100 - sum(v[,2])) # Numbers for others
   
-  df.f3[,2] <- read.fwf(textConnection(df.f3[,2]),
-                        widths=c(nchar(df.f3[,2])-1, 1), # Reduce %
-                        colClasses = "character")
+  colnames(v) <- c("Top Institutional Holders", "Portion (%)") # Column names
+  rownames(v) <- seq(nrow(v)) # Row names
   
-  df.f3[,2] <- as.numeric(df.f3[,2]) # Change format to numeric
-  
-  df.f3[nrow(df.f3) + 1,]=c("Others", 100-sum(df.f3[,2])) # Numbers for others
-  
-  df.f3 # Display
+  v # Display
 }
-s.holders("NKE") # Test
+s.holders("AAPL") # Test
