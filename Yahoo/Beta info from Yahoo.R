@@ -1,6 +1,8 @@
+library("rvest") # Library
+
 beta.yahoo <- function(x){ # Function to get info about company beta
   
-  b.values <- NULL # Create list to contain values
+  b <- NULL # Create list to contain values
   
   for (n in 1:length(x)){ v <- x[n] # For every ticker get beta value
   
@@ -12,14 +14,11 @@ beta.yahoo <- function(x){ # Function to get info about company beta
     
     i <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    b <- data.frame(i[grep("Beta ", i) + 1]) # Scrape Beta value
-    
-    rownames(b) <- v # Assign row names
-    
-    colnames(b) <- "Beta 5Y" # Assign column names
-    
-    b.values <- rbind.data.frame(b.values, b)} # Join betas
+    b <- rbind(b, as.numeric(i[grep("Beta ", i) + 1])) } # Join betas
   
-  b.values # Display
+  rownames(b) <- x # Assign row names
+  colnames(b) <- "Beta 5Y" # Assign column names
+    
+  b # Display
 }
 beta.yahoo(x = c("M", "X", "C", "AAPL")) # Test
