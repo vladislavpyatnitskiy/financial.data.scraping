@@ -1,35 +1,27 @@
-smartlab.ratios <- function(x, y){ # Function to get info from Smartlab
+library("rvest") # Library
+
+smartlab.ratios <- function(x, l){ # Function to get info from Smartlab
   
   s <- read_html(sprintf("https://smart-lab.ru/q/shares_fundamental/?field=%s",
                          x)) # Smartlab HTML
   
-  s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab000
+  s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab
   
-  s.header <- tab000 %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
   
-  df.f1 <- NULL # Assign lists
-  df.f2 <- NULL
-  df.f3 <- NULL
-  df.f6 <- NULL
+  df <- NULL # Variable name for values
   
-  for (n in 0:(length(s.header) / 6)){ 
+  for (n in 0:(length(y) / 6)){ # Table with Name, Ticker and values
     
-    df.f1 <- rbind(df.f1, s.header[(1 + n * 6)]) # Indices
-    
-    df.f2 <- rbind(df.f2, s.header[(2 + n * 6)]) # Names
-    
-    df.f3 <- rbind(df.f3, s.header[(3 + n * 6)]) # Tickers and then ratios
-    
-    df.f6 <- rbind(df.f6, as.numeric(gsub("\\D", "", s.header[(6 + n * 6)]))) }
+    df <- rbind(df, cbind(y[(1 + n * 6)], y[(2 + n * 6)], y[(3 + n * 6)],
+                          as.numeric(gsub("\\D", "", y[(6 + n * 6)]))))}
   
-  df.final <- data.frame(df.f1, df.f2, df.f3, df.f6) # Join
+  df <- subset(df, select = -c(1)) # Reduce first column
   
-  df.final <- subset(df.final, select = -c(1)) # Reduce first column
+  df <- df[-nrow(df),] # Reduce last row
   
-  df.final <- df.final[-nrow(df.final),] # Reduce last row
+  colnames(df) <- c("Название", "Тикер", l) # Column names
   
-  colnames(df.final) <- c("Название", "Тикер", y) # Column names
-  
-  df.final # Display
+  df # Display
 }
-View(smartlab.ratios("ev_ebitda", "EV/EBITDA")) # Test
+View(smartlab.ratios("market_cap", "Рыночная Капитализация")) # Test
