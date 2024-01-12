@@ -2,28 +2,38 @@ library("rvest") # Library
 
 s.holders <- function(x){ # info about holders of large positions
   
-  s<-read_html(sprintf("https://finance.yahoo.com/quote/%s/holders?p=%s",x,x))
+  d <- NULL # Where to put data
   
-  s.yahoo <- s %>% html_nodes('table') %>% .[[2]] -> tab # Assign Table 
+  for (n in 1:length(x)){ c <- x[n] # Download data for each security
   
-  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
-  
-  v <- NULL # Create lists to contain variables & Subset excess row
-  
-  for (n in 0:(length(y) / 5)){ # Scrape data for holders and portions
+    s <- sprintf("https://finance.yahoo.com/quote/%s/holders?p=%s", c, c)
     
-    v <- rbind(v,cbind(y[(1+n*5)],read.fwf(textConnection(y[(4 + n * 5)]),
-                                           widths=c(nchar(y[(4 + n * 5)])-1,1),
-                                           colClasses = "character"))) } 
-  v <- v[-nrow(v),][,-ncol(v)] 
+    s <- read_html(s) # Read html info
+    
+    s.yahoo <- s %>% html_nodes('table') %>% .[[2]] -> tab # Assign Table 
+    
+    y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    
+    v <- NULL # Create lists to contain variables & Subset excess row
+    
+    for (n in 0:(length(y) / 5)){ # Scrape data for holders and portions
+      
+      v <- rbind(v, cbind(y[(1+n*5)], read.fwf(textConnection(y[(4+n*5)]),
+                                               widths=c(nchar(y[(4+n*5)])-1,1),
+                                               colClasses = "character"))) } 
+    v <- v[-nrow(v),][,-ncol(v)] 
+    
+    v[,2] <- as.numeric(v[,2]) # Change format to numeric
+    
+    v[nrow(v) + 1,] = c("Others", 100 - sum(v[,2])) # Numbers for others
+    
+    colnames(v) <- c("Top Institutional Holders", c) # Column names
+    rownames(v) <- seq(nrow(v)) # Row names
+    
+    if (is.null(d)){ d <- v } else { # Join securities' data
+    
+    d <- merge(x = d, y = v, by = "Top Institutional Holders", all = T) } }
   
-  v[,2] <- as.numeric(v[,2]) # Change format to numeric
-  
-  v[nrow(v) + 1,] = c("Others", 100 - sum(v[,2])) # Numbers for others
-  
-  colnames(v) <- c("Top Institutional Holders", "Portion (%)") # Column names
-  rownames(v) <- seq(nrow(v)) # Row names
-  
-  v # Display
+  d # Display
 }
-s.holders("AAPL") # Test
+s.holders(c("AAPL", "AMZN", "META", "MSFT", "GOOGL", "TSLA", "NVDA")) # Test
