@@ -1,27 +1,31 @@
 library("rvest") # Library
 
-smartlab.ratios <- function(x, l){ # Function to get info from Smartlab
+smartlab.ratios <- function(x, c){ # Function to get info from Smartlab
   
-  s <- read_html(sprintf("https://smart-lab.ru/q/shares_fundamental/?field=%s",
-                         x)) # Smartlab HTML
+  l <- NULL #
   
-  s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab
+  for (m in 1:length(x)){ v <- x[m] #
   
-  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
-  
-  df <- NULL # Variable name for values
-  
-  for (n in 0:(length(y) / 6)){ # Table with Name, Ticker and values
+    s<-read_html(sprintf("https://smart-lab.ru/q/shares_fundamental/?field=%s",
+                         v)) # Smartlab HTML
     
-    df <- rbind(df, cbind(y[(1 + n * 6)], y[(2 + n * 6)], y[(3 + n * 6)],
-                          as.numeric(gsub("\\D", "", y[(6 + n * 6)]))))}
-  
-  df <- subset(df, select = -c(1)) # Reduce first column
-  
-  df <- df[-nrow(df),] # Reduce last row
-  
-  colnames(df) <- c("Название", "Тикер", l) # Column names
-  
-  df # Display
+    s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab
+    
+    y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    
+    df <- NULL # Variable name for values
+    
+    # Table with Name, Ticker and values
+    for (n in 0:(length(y)/6)){ df <- rbind(df,cbind(y[(3+n*6)],y[(6+n*6)])) }
+    
+    df <- df[-nrow(df),] # Reduce last row
+    df[,2] <- as.numeric(gsub('["\t\n"]','',df[,2])) # Reduce characters
+    colnames(df) <- c("Ticker", c[m]) # Column names
+    
+    # Join
+    if (is.null(l)){ l<-df } else { l<-merge(x=l,y=df,by="Ticker",all=T) } } 
+    
+  l # Display
 }
-View(smartlab.ratios("market_cap", "Рыночная Капитализация")) # Test
+View(smartlab.ratios(x = c("ev_ebitda", "p_bv", "debt_ebitda", "p_e"),
+                     c = c("EV/EBITDA", "P/BV", "Debt/EBITDA", "P/E")))
