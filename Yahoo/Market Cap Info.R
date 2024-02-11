@@ -1,11 +1,11 @@
 library("rvest") # Library
 
-c.marketcap <- function(x){ # Market Cap Info
+c.marketcap <- function(x, caplevel = F){ # Market Cap Info
   
-  new.info <- NULL
+  df <- NULL
   
   for (n in 1:length(x)){ v <- x[n] # Subset ticker
-    
+  
     p <- sprintf("https://finance.yahoo.com/quote/%s/key-statistics?p=%s",v,v)
     
     page.p <- read_html(p) # Read HTML & extract necessary info
@@ -19,17 +19,32 @@ c.marketcap <- function(x){ # Market Cap Info
     s <- read.fwf(textConnection(s), widths = c(nchar(s) - 1, 1),
                   colClasses = "character")
     
-    if (s[1,2] == "M"){ s <- as.numeric(s[1,1]) / 1000 }
+    if (s[1,2] == "M"){ s <- as.numeric(s[1,1])/1000 } else if (s[1,2] == "T"){
+      
+      s <- as.numeric(s[1,1]) * 1000 } else { s <- as.numeric(s[1,1]) }
     
-    else if (s[1,2] == "T"){ s <- as.numeric(s[1,1]) * 1000 }
+    if (isTRUE(caplevel)){
     
-    else s <- as.numeric(s[1,1]) # Format to billion format
+      if (s < .3){ l <- "Micro-Cap" } # if < $300 million => Micro-Cap
+      
+      else if (s > .3 && s < 2) { l <- "Small-Cap" } # Small-Cap
+      
+      else if (s > 2 && s < 10) { l <- "Mid-Cap" } # Mid-Cap
+      
+      else if (s > 10 && s < 200) { l <- "Large-Cap" } # Large-Cap
+      
+      else { l <- "Mega-Cap" } # if > $200 billion => Mega-Cap
+      
+      df <- rbind.data.frame(df, cbind(l, s)) } else { # Level & Market Cap 
+        
+        df <- rbind.data.frame(df, s) } } # Data Frame with Market Cap only
     
-    new.info <- rbind.data.frame(new.info, s) } # Data Frame 
+  rownames(df) <- x # Tickers
   
-  rownames(new.info) <- x # Tickers
-  colnames(new.info) <- "Marker Cap ($billions)" # Column Name
+  if (isTRUE(caplevel)){ colnames(df) <- c("Level", "Marker Cap ($billions)") }
   
-  new.info # Display
+    else { colnames(df) <- "Marker Cap ($billions)" }
+  
+  df # Display
 }
-c.marketcap(c("AAPL", "AMZN", "SWBI", "AIG")) # Test
+c.marketcap(c("AAPL", "SWBI", "AIG"), caplevel = T) # Test
