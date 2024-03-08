@@ -10,16 +10,12 @@ ftse100.list.wiki <- function(x, yahoo = T){ # Tickers from FTSE 100
   
   v <- NULL # Store tickers
   
-  for (n in 0:(length(y) / 3)){ # Clean data
-    
-    if (isTRUE(yahoo)){ # If you need data for Yahoo! Finance
-    
-      v <- rbind.data.frame(v, paste(y[2 + n * 3], ".L", sep = "")) } else {
-        
-        v <- rbind.data.frame(v, y[2 + n * 3]) } } # Otherwise
+  for (n in 0:(length(y) / 3)){ v <- rbind.data.frame(v, y[2 + n * 3]) }
   
   v <- v[apply(v, 1, function(x) all(!is.na(x))),] # Get rid of NA
   
+  if (isTRUE(yahoo)){ v <- paste(v, ".L", sep = "") } # To get data via Yahoo
+  
   v # Display
 }
-ftse100.list.wiki("FTSE_100_Index", yahoo = F) # Test
+ftse100.list.wiki("FTSE_100_Index", yahoo = T) # Test
