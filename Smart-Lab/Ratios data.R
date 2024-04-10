@@ -8,7 +8,7 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
   
     s<-read_html(sprintf("https://smart-lab.ru/q/shares_fundamental/?field=%s",
                          v))
-    
+  
     s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab
     
     y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
@@ -18,7 +18,12 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
     for (n in 0:(length(y)/6)){ df <- rbind(df, cbind(y[(3+n*6)],y[(6+n*6)])) }
     
     df <- df[-nrow(df),] # Reduce last row
-    df[,2] <- as.numeric(gsub('["\t\n"]', '', df[,2])) # Reduce characters
+    df[,2] <- gsub('["\n"]', '', gsub('["\t"]', '', df[,2]))
+    
+    for (n in 1:length(df)){ if (isTRUE(grepl(" ", df[n]))){
+      
+        df[n] <- gsub(" ", "", df[n]) } } # Reduce gap in market cap
+    
     colnames(df) <- c("Ticker", gsub("_", "/", toupper(x[m]))) # Column names
     
     # Join
@@ -28,8 +33,10 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
   
   rownames(l) <- l[,1] # Move tickers to row names
   
-  l <- l[,-1] # Reduce excessive column with tickers which are in row names
+  l <- as.data.frame(l[,-1]) # Reduce excessive column with tickers
+  
+  for (n in 1:ncol(l)){ l[,n] <- as.numeric(l[,n]) } # Make data numeric
   
   return(l) # Display
 }
-smartlab.ratios(x=c("ev_ebitda","p_bv","debt_ebitda","p_e","market_cap","p_s"))
+smartlab.ratios(x=c("market_cap","p_e","p_bv","p_s","ev_ebitda","debt_ebitda"))
