@@ -21,7 +21,17 @@ finviz.sectors.table <- function(x){ # Data Frame with info about sectors
   
   d <- subset(d, select = -c(1)) # Reduce excessive column
   
-  colnames(d) <- c("Market Cap","P/E","Forward P/E","P/S","P/B","P/C","P/FCF") 
+  colnames(d) <- c("Market Cap ($blns)", "P/E", "Forward P/E", "P/S", "P/B",
+                   "P/C", "P/FCF") 
+  
+  for (n in 1:nrow(d)){ # Reduce "B" from Market Cap column values
+    
+    d[n,1] <- read.fwf(textConnection(d[n,1]), widths = c(nchar(d[n,1]) - 1, 1),
+                       colClasses = "character")[,1] }
+  
+  d <- as.data.frame(d) # Transform to data frame
+  
+  for (n in 1:ncol(d)){ d[,n] <- as.numeric(d[,n]) } # Make data numeric
   
   d # Display
 }
