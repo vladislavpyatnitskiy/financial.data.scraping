@@ -4,7 +4,7 @@ c.description <- function(x){ l <- NULL # Get Company Info
 
   for (n in 1:length(x)){ s <- x[n]
   
-    p <- sprintf("https://finance.yahoo.com/quote/%s/profile?p=%s", s, s)
+    p <- sprintf("https://uk.finance.yahoo.com/quote/%s/profile?p=%s", s, s)
       
     page.p <- read_html(p) # Read HTML & extract necessary info
       
