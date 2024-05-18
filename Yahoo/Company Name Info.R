@@ -6,7 +6,7 @@ s.names <- function(x){ # Data Frame with tickers and names
   
   for (n in 1:length(x)){ a <- x[n]
   
-    s <- sprintf("https://finance.yahoo.com/quote/%s?p=%s&.tsrc=fin-srch",a,a)
+    s<-sprintf("https://uk.finance.yahoo.com/quote/%s?p=%s&.tsrc=fin-srch",a,a)
     
     s <- read_html(s) # Read html info
     
