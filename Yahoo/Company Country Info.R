@@ -4,7 +4,7 @@ c.country <- function(x){ l <- NULL # Create list
 
   for (n in 1:length(x)){ s <- x[n] # For each security find sector
   
-    p <- sprintf("https://finance.yahoo.com/quote/%s/profile?p=%s", s, s)
+    p <- sprintf("https://uk.finance.yahoo.com/quote/%s/profile?p=%s", s, s)
     
     page.p <- read_html(p) # Read HTML & extract necessary info
     
