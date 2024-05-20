@@ -6,15 +6,14 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap Info
   
   for (n in 1:length(x)){ v <- x[n] # Subset ticker
   
-    p <- sprintf("https://finance.yahoo.com/quote/%s/key-statistics?p=%s",v,v)
-    
-    page.p <- read_html(p) # Read HTML & extract necessary info
-    
-    price.yahoo1 <- page.p %>% html_nodes('div') %>% .[[1]] -> tab
+    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/%s", v,
+                           "key-statistics"))
+  
+    price.yahoo1 <- p %>% html_nodes('div') %>% .[[1]] -> tab
     
     i <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    s <- i[grep("Market Cap", i) + 1] # Market Cap Info
+    s <- i[grep("Market cap", i) + 1] # Market Cap Info
     
     s <- read.fwf(textConnection(s), widths = c(nchar(s) - 1, 1),
                   colClasses = "character")
@@ -23,8 +22,8 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap Info
       
       s <- as.numeric(s[1,1]) * 1000 } else { s <- as.numeric(s[1,1]) }
     
-    if (isTRUE(caplevel)){
-    
+    if (isTRUE(caplevel)){ # Assign Market Cap Levels for each company
+      
       if (s < .3){ l <- "Micro-Cap" } # if < $300 million => Micro-Cap
       
       else if (s > .3 && s < 2) { l <- "Small-Cap" } # Small-Cap
@@ -39,12 +38,12 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap Info
         
         df <- rbind.data.frame(df, s) } } # Data Frame with Market Cap only
     
-  rownames(df) <- x # Tickers
-  
-  if (isTRUE(caplevel)){ colnames(df) <- c("Level", "Marker Cap ($billions)") }
-  
-    else { colnames(df) <- "Marker Cap ($billions)" }
-  
+    rownames(df) <- x # Tickers
+    
+  if (isTRUE(caplevel)){ colnames(df) <- c("Level","Marker Cap ($billions)") }
+    
+  else { colnames(df) <- "Marker Cap ($billions)" }
+   
   df # Display
 }
-c.marketcap(c("AAPL", "SWBI", "AIG"), caplevel = T) # Test
+c.marketcap(c("AAPL", "AIG", "SWBI"), caplevel = T) # Test
