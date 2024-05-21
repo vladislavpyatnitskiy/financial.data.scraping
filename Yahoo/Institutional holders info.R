@@ -5,12 +5,10 @@ s.holders <- function(x){ # info about holders of large positions
   d <- NULL # Where to put data
   
   for (n in 1:length(x)){ c <- x[n] # Download data for each security
-  
-    s <- sprintf("https://finance.yahoo.com/quote/%s/holders?p=%s", c, c)
     
-    s <- read_html(s) # Read html info
+    s <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/holders", c)) 
     
-    s.yahoo <- s %>% html_nodes('table') %>% .[[2]] -> tab # Assign Table 
+    tab <- s %>% html_nodes('table') %>% .[[2]] # Assign Table 
     
     y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
@@ -31,9 +29,9 @@ s.holders <- function(x){ # info about holders of large positions
     rownames(v) <- seq(nrow(v)) # Row names
     
     if (is.null(d)){ d <- v } else { # Join securities' data
+      
+      d <- merge(x = d, y = v, by = "Top Institutional Holders", all = T) } }
     
-    d <- merge(x = d, y = v, by = "Top Institutional Holders", all = T) } }
-  
   d # Display
 }
-s.holders(c("AAPL", "AMZN", "META", "MSFT", "GOOGL", "TSLA", "NVDA")) # Test
+s.holders(c("AAPL", "MSFT", "META", "GOOGL", "TSLA", "NVDA")) # Test
