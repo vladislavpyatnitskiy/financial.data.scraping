@@ -2,7 +2,7 @@ library("rvest")
 
 rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
   
-  P <- NULL #
+  P <- NULL # Data of Dividends with Time Series and Tickers
   
   y <- seq("2023", from = "2014", by = 1) # Dates
   
@@ -14,89 +14,83 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
       
       p <- read_html(sprintf("https://smart-lab.ru/dividends/index?year=%s",a))
       
-      div <- p %>% html_nodes('table') %>% .[[1]] -> tab # Table
-      
-      f <- tab %>% html_nodes('tr') # Show rows of dividends
+      f <- p %>% html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Table
       
       l <- NULL # Show only approved dividends 
       
       for (n in 1:length(f)){ if (isTRUE(f[n] %>% html_attr('class') ==
                                          "dividend_approved")){
         
-          q <- f[n] %>% html_nodes('td') %>% html_text()
-          
-          l <- c(l, q) } } # Join rows of approved dividends
+          l <- c(l, f[n] %>% html_nodes('td') %>% html_text()) } } 
       
-      df <- NULL # Variable for Table with Name, Ticker and values
+      D <- NULL # Variable for Table with Name, Ticker and values
       
-      if (isTRUE(any(l == v))){ # Format info to Data Frame
+      if (isTRUE(any(l == v))){ # Data Frame of Dates and Dividends
         
-        for (n in 0:(length(l) / 11)){ if (isTRUE(l[(2 + n * 11)] == v)){
+        for (n in 0:(length(l)/11)){ if (isTRUE(l[(2 + n * 11)] == v)){
           
-            df <- rbind.data.frame(df,
-                                   cbind(l[7 + n * 11],
-                                         as.numeric(gsub(",", ".",
-                                                         l[4+n*11])))) } } }
-      else { next } # Next Year
+            D <- rbind.data.frame(D, cbind(l[7 + n * 11],
+                                           as.numeric(gsub(",", ".",
+                                                           l[4+n*11])))) } } }
+        else { next } # Next Year
       
-    ts <- df[,1] # Dates
-    
-    for (n in 1:length(ts)){ # Reform data format
+      ts <- D[,1] # Dates
       
-      Y<-as.character(read.fwf(textConnection(ts[n]),widths=c(nchar(ts[n])-4,
-                                                              nchar(ts[n])-0),
-                               colClasses = "character")[2]) # Year
+      ts <- format(strptime(ts, format = "%d.%m.%Y"), "%Y-%m-%d") # Dates
       
-      M<-as.character(read.fwf(textConnection(ts[n]),widths=c(nchar(ts[n])-7,
-                                                              nchar(ts[n])-8),
-                               colClasses = "character")[2]) # Month
+      D <- as.data.frame(D[,-1]) # Reduce excessive column
       
-      d<-as.character(read.fwf(textConnection(ts[n]),widths=c(nchar(ts[n])-8,
-                                                              nchar(ts[n])-10),
-                                 colClasses = "character")[1]) # Day
+      D <- data.frame(ts, D) # Join time series and dividends
       
-      ts[n] <- paste(Y, M, d, sep = "-") } # Concatenate dates
-    
-    df <- as.data.frame(df[,-1]) # Reduce excessive column
-    
-    df <- data.frame(ts, df) # Join time series and dividends
-    
-    colnames(df) <- c("Date", v) # Column names
-    
-    L <- rbind(L, df) } # Join rows of data frames
+      colnames(D) <- c("Date", v) # Column names
+      
+      L <- rbind(L, D) } # Join rows of data frames
     
     for (n in 1:nrow(L)){ while (isFALSE(L[n,1] == L[nrow(L),1])){
       
         if (isTRUE(L[n + 1,1] == L[n,1]) & isTRUE(L[n + 1,2] == L[n,2])){ 
-          
+        
           L <- L[-(n + 1),] } # Delete Rows with duplicates
       
         break } } # End loop when it is over
-  
+    
     if (is.null(P)){ P = L } else { P <- merge(x=P, y=L, by="Date", all=T) } }
-  
+    
   dates <- P[,1] # Put dates into separate column
-  
+    
   P <- as.data.frame(P[,-1]) # Reduce excessive column
-  
+    
   for (n in 1:length(dates)){ while (dates[n] != dates[length(dates)]){
-    
-      if (isTRUE(dates[n + 1] == dates[n])){ # Add 1 when Double Dividends
       
+      if (isTRUE(dates[n + 1] == dates[n])){ # Add 1 when Double Dividends
+        
         dates[n + 1] <- paste(dates[n + 1], "1", sep = "") } #
-    
+      
       break } } # End when the loop is over
-  
+    
   rownames(P) <- dates # Dates
   
   P[is.na(P)] <- 0 # Substitute NA with Zero values
   
-  if (is.null(s) && is.null(e)){ P } # When dates are not submitted 
+  if (is.null(s)){ dates <- rownames(P)[rownames(P) < e] # Dates
+    
+    P <- P[rownames(P) < e,] } # Only End Date submitted
   
-  else if (is.null(s)){ P[rownames(P) < e,] } # When only End Date submitted
+  else if (is.null(e)){ dates <- rownames(P)[rownames(P) > s] # Dates
+    
+    P <- P[rownames(P) > s,] } # Only Start Date submitted
   
-  else if (is.null(e)){ P[rownames(P) > s,] } # When only Start Date submitted
+  else if (is.null(s) && is.null(e)){ # When both submitted
+    
+    dates <- rownames(P)[rownames(P) > s & rownames(P) < e] # Dates
+    
+    P <- P[rownames(P) > s & rownames(P) < e,] }  # Dividends for this Period
   
-  else { P[rownames(P) < e & rownames(P) > s,] } # When both dates submitted
+  if (isTRUE(is.character(P))){ P <- as.data.frame.numeric(P) # Make Numeric
+  
+    rownames(P) <- dates # Dates
+    colnames(P) <- x } # Tickers
+  
+  P # Display
 }
-rus.dividends(c("LKOH", "MAGN", "PHOR", "MGNT"), s = "2022-01-01") # Test
+rus.dividends(c("LKOH", "MAGN", "NVTK"), s = "2022-01-01") # Test
