@@ -1,17 +1,21 @@
 library("rvest") # Library
 
-c.marketcap <- function(x, caplevel = F){ # Market Cap Info
+c.marketcap <- function(x, caplevel = F){ # Market Cap info via string or table
   
-  df <- NULL
+  j <- list(list(10, 200, "Large-Cap Companies:", "Large-Cap"), # > 10 & < 200
+            list(2, 10, "Medium-Cap Companies:", "Medium-Cap"), # > 2 & < 10
+            list(0.3, 2, "Small-Cap Companies:", "Small-Cap"), # > 0.3 & < 2
+            list(0, 0.3, "Micro-Cap Companies:", "Micro-Cap")) # > 0 & < 0.3
   
-  for (n in 1:length(x)){ v <- x[n] # Subset ticker
+  df <- NULL # Data Frame for Market Cap Levels and Values
   
-    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/%s", v,
-                           "key-statistics"))
-  
-    price.yahoo1 <- p %>% html_nodes('div') %>% .[[1]] -> tab
+  for (n in 1:length(x)){ # Read HTML & extract necessary info
     
-    i <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/%s", x[n],
+                           "key-statistics")) 
+    
+    i <- p %>% html_nodes('div') %>% .[[1]] %>% html_nodes('tr') %>%
+      html_nodes('td') %>% html_text()
     
     s <- i[grep("Market cap", i) + 1] # Market Cap Info
     
@@ -22,28 +26,39 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap Info
       
       s <- as.numeric(s[1,1]) * 1000 } else { s <- as.numeric(s[1,1]) }
     
-    if (isTRUE(caplevel)){ # Assign Market Cap Levels for each company
+    if (isFALSE(caplevel)){ for (n in 1:length(j)){ # Market Cap Levels
       
-      if (s < .3){ l <- "Micro-Cap" } # if < $300 million => Micro-Cap
+      if (s > j[[n]][[1]] && s < j[[n]][[2]]){ l <- j[[n]][[4]] 
       
-      else if (s > .3 && s < 2) { l <- "Small-Cap" } # Small-Cap
+      } else if (s > 200){ l <- "Mega-Cap" } else { next } } 
       
-      else if (s > 2 && s < 10) { l <- "Mid-Cap" } # Mid-Cap
-      
-      else if (s > 10 && s < 200) { l <- "Large-Cap" } # Large-Cap
-      
-      else { l <- "Mega-Cap" } # if > $200 billion => Mega-Cap
-      
-      df <- rbind.data.frame(df, cbind(l, s)) } else { # Level & Market Cap 
-        
-        df <- rbind.data.frame(df, s) } } # Data Frame with Market Cap only
+      # Market Cap Level with values OR Market Cap values only
+      df <- rbind.data.frame(df, cbind(l, s)) } else { df <- rbind(df, s) } }
+  
+  if (isFALSE(caplevel)){ # Create Data Frame
     
     rownames(df) <- x # Tickers
+    colnames(df) <- c("Level", "Marker Cap ($billions)") # column names
     
-  if (isTRUE(caplevel)){ colnames(df) <- c("Level","Marker Cap ($billions)") }
+    df } else { c <- as.numeric(df) # Make available values to numeric format
     
-  else { colnames(df) <- "Marker Cap ($billions)" }
-   
-  df # Display
+    names(c) <- x # Assign names to them
+    
+    c <- sort(c, decreasing = T) # Sort in a descending way
+    
+    m <- NULL # Write advices about securities according to Market Cap
+    
+    if (isFALSE(identical(names(which(c > 200)), character(0)))){
+      
+      m <- c(m, paste("Mega-Cap Companies:", toString(names(which(c > 200)))))}
+    
+    for (n in 1:length(j)){ #
+      
+      if (isFALSE(identical(names(which(c > j[[n]][[1]] & c < j[[n]][[2]])),
+                            character(0)))){
+        m <- c(m,
+               paste(j[[n]][[3]],
+                     toString(names(which(c>j[[n]][[1]] & c<j[[n]][[2]])))))} }
+    m } # Display
 }
 c.marketcap(c("AAPL", "AIG", "SWBI"), caplevel = T) # Test
