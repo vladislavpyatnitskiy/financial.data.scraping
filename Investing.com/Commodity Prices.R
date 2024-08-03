@@ -9,20 +9,21 @@ commodity.prices <- function(x){ # Commodity Prices from investing.com
   p[grep("Copper", p)[1]] <- "US Copper" # Assign US 
   p[grep("Copper", p)[2]] <- "UK Copper" # Assign UK
   
-  p <- p[!duplicated(p)] # Delete duplicates
+  p <- p[!duplicated(p)][-c(1,3)] # Delete duplicates & excess values
   
-  p <- p[-c(1,3)] # Delete values
+  p[grep("XAU/USD", p)[1]] <- "XAU-USD" # Replace / with - & Delete : % /
   
-  p <- p[!grepl(":", p) & !grepl("%", p)] # Delete values with : and %
-  p <- p[-(grep("US Coffee C", p) - 1)] # Delete 
+  p <- p[!grepl(":", p) & !grepl("%", p) & !grepl("/", p)] # Form Data Frame
   
-  l <- NULL # Make data frame from list
-  
-  for (n in 0:length(p)){ l <- rbind.data.frame(l, cbind(p[1+2*n], p[2+2*n])) }
-  
-  l <- l[apply(l, 1, function(x) all(!is.na(x))),] # Delete NA
-  
+  l <- data.frame(p[seq(from=1,to=length(p),by=2)], p[seq(from=2,to=length(p),
+                                                          by=2)])
   colnames(l) <- c("Ticker", "Price") # Assign column names
+  
+  for (n in 1:nrow(l)){ if (isTRUE(grepl(",", l[n,2]))){
+    
+      l[n,2] <- as.numeric(gsub(",", "", l[n,2])) } else {
+      
+      l[n,2] <- as.numeric(l[n,2]) } } # Make data numeric and reduce commas
   
   l # Display
 }
