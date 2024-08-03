@@ -2,37 +2,29 @@ library("rvest") # Library
 
 finviz.sectors.table <- function(x){ # Data Frame with info about sectors
   
-  s <- read_html(sprintf("https://finviz.com/%s", x))
+  s <- read_html(sprintf("https://finviz.com/%s", x)) %>%
+    html_nodes('table') %>% .[[8]] %>% html_nodes('tr') %>%
+    html_nodes('td') %>% html_text() # Get data from web site
   
-  s.yahoo <- s %>% html_nodes('table') %>% .[[8]] -> tab # Assign Table 
+  l <- c(2, 3, 4, 5, 7, 8, 9, 10) 
   
-  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+  d <- NULL
   
-  d <- NULL # Data Frame with values
-  
-  for (n in 0:(length(y) / 15)){ # Market Cap & PE & FPE & PS & PB & PC & PFCF
+  for (n in 1:length(l)){ # Market Cap & PE & FPE & PS & PB & PC & PFCF
     
-    d <- rbind(d,cbind(y[(2+n*15)],y[(3+n*15)],y[(4+n*15)],y[(5+n*15)],
-                       y[(7+n*15)],y[(8+n*15)],y[(9+n*15)],y[(10+n*15)])) }
-  
-  d <- d[-nrow(d),] # Reduce last column
+    d <- rbind.data.frame(d, s[seq(from = l[n], to = length(s), by = 15)]) }
+
+  d <- as.data.frame(t(d)) # Transpose and change from matrix to data frame
   
   rownames(d) <- d[,1] # Assign row names
   
   d <- subset(d, select = -c(1)) # Reduce excessive column
   
   colnames(d) <- c("Market Cap ($blns)", "P/E", "Forward P/E", "P/S", "P/B",
-                   "P/C", "P/FCF") 
+                   "P/C", "P/FCF") # Column names
   
-  for (n in 1:nrow(d)){ # Reduce "B" from Market Cap column values
-    
-    d[n,1] <- read.fwf(textConnection(d[n,1]), widths = c(nchar(d[n,1]) - 1, 1),
-                       colClasses = "character")[,1] }
-  
-  d <- as.data.frame(d) # Transform to data frame
-  
-  for (n in 1:ncol(d)){ d[,n] <- as.numeric(d[,n]) } # Make data numeric
-  
+  d[,1] <- read.fwf(textConnection(d[,1]),widths = c(nchar(d[,1]) - 1, 1),
+                    colClasses = "character")[,1] # Reduce "B" from Market Cap
   d # Display
 }
 finviz.sectors.table("groups.ashx?g=sector&v=120&o=name") # Test
