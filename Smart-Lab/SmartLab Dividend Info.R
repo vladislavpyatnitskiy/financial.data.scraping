@@ -2,43 +2,31 @@ library("rvest") # Library
 
 smartlab.dividend <- function(x){ # Dividends Data Frame for certain year
   
-  p <- read_html(sprintf("https://smart-lab.ru/dividends/index?year=%s", x))
-  
-  div <- p %>% html_nodes('table') %>% .[[1]] -> tab # Table
-  
-  f <- tab %>% html_nodes('tr') # Dividends
+  f <- read_html(sprintf("https://smart-lab.ru/dividends/index?year=%s",x)) %>%
+    html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Dividends
   
   L <- NULL # Show only Dividend Payments that have been approved 
   
   for (n in 1:length(f)){ if (isTRUE(f[n] %>% html_attr('class') ==
                                      "dividend_approved")){
-      
-      q <- f[n] %>% html_nodes('td') %>% html_text()
-      
-      L <- c(L, q) } } # Join rows of approved dividends
-  
-  df <- NULL # Variable for Table with Name, Ticker and values
-  
-  for (n in 0:(length(L) / 11)){ # Data Frame with Dividend Info
     
-    P <- as.numeric(gsub(",",  ".", read.fwf(textConnection(L[(5+n*11)]),
-                                             widths=c(nchar(L[(5+n*11)])-1,1),
-                                             colClasses = "character")[,1]))
-    df <- rbind.data.frame(df,
-                           cbind(L[(2 + n * 11)], # Ticker
-                                 L[(1 + n * 11)], # Name of Company
-                                 as.numeric(gsub(",", ".",
-                                                 L[(4 + n * 11)])), # Dividend
-                                 P, # Dividend Yield
-                                 L[(7 + n * 11)], # Buy Before
-                                 L[(8 + n * 11)], # Closing Day
-                                 L[(9 + n * 11)], # Payment Date
-                                 as.numeric(gsub(",", ".",
-                                                 L[(10 + n * 11)])))) } # Price
+      L <- c(L, f[n] %>% html_nodes('td') %>% html_text()) } } # Join
   
-  colnames(df) <- c("Тикер", "Название", "Стоимость дивидендов",
-                    "Доходность (%)", "Купить до", "День Закрытия Реестра",
-                    "Выплата До", "Цена")
-  df # Display
+  D <- data.frame(L[seq(from = 2, to = length(L), by = 11)],
+                  L[seq(from = 1, to = length(L), by = 11)],
+                  format(as.numeric(gsub(",", ".", L[seq(from=4, to=length(L),
+                                                       by=11)])), scientific=F),
+                  as.numeric(gsub(",", ".",
+                                  strsplit(L[seq(from=5, to=length(L), by=11)],
+                                           split="%"))),
+                  L[seq(from = 7, to = length(L), by = 11)],
+                  L[seq(from = 8, to = length(L), by = 11)],
+                  L[seq(from = 9, to = length(L), by = 11)],
+                  format(as.numeric(gsub(",", ".", L[seq(from=10, to=length(L),
+                                                       by=11)])),scientific=F))
+  
+  colnames(D) <- c("Тикер","Название","Стоимость дивидендов","Доходность (%)",
+                   "Купить до", "День Закрытия Реестра", "Выплата До", "Цена")
+  D # Display
 }
 smartlab.dividend("2022") # Test
