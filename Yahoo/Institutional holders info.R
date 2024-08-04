@@ -1,37 +1,31 @@
 library("rvest") # Library
 
 s.holders <- function(x){ # info about holders of large positions
+    
+  d <- NULL
   
-  d <- NULL # Where to put data
+  for (m in 1:length(x)){ c <- x[m]
+    
+    y <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/holders",
+                           c)) %>% html_nodes('table') %>% .[[2]] %>%
+      html_nodes('tr') %>% html_nodes('td') %>% html_text() # Get values
+    
+    v <- cbind.data.frame(y[seq(from = 1, to = length(y), by = 5)],
+                          y[seq(from = 4, to = length(y), by = 5)])
   
-  for (n in 1:length(x)){ c <- x[n] # Download data for each security
-    
-    s <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/holders", c)) 
-    
-    tab <- s %>% html_nodes('table') %>% .[[2]] # Assign Table 
-    
-    y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
-    
-    v <- NULL # Create lists to contain variables & Subset excess row
-    
-    for (n in 0:(length(y) / 5)){ # Scrape data for holders and portions
-      
-      v <- rbind(v, cbind(y[(1+n*5)], read.fwf(textConnection(y[(4+n*5)]),
-                                               widths=c(nchar(y[(4+n*5)])-1,1),
-                                               colClasses = "character"))) } 
-    v <- v[-nrow(v),][,-ncol(v)] 
+    for (n in 1:nrow(v)){ v[n,2] <- strsplit(v[n,2], split = "%") }
     
     v[,2] <- as.numeric(v[,2]) # Change format to numeric
-    
+      
     v[nrow(v) + 1,] = c("Others", 100 - sum(v[,2])) # Numbers for others
-    
+      
     colnames(v) <- c("Top Institutional Holders", c) # Column names
     rownames(v) <- seq(nrow(v)) # Row names
     
-    if (is.null(d)){ d <- v } else { # Join securities' data
+    if (is.null(d)){ d <- v } else { # Full Join
       
       d <- merge(x = d, y = v, by = "Top Institutional Holders", all = T) } }
-    
+  
   d # Display
 }
-s.holders(c("AAPL", "MSFT", "META", "GOOGL", "TSLA", "NVDA")) # Test
+s.holders(c("AAPL", "AMZN", "META", "MSFT", "NVDA", "TSLA")) # Test
