@@ -11,7 +11,7 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
     v <- x[j] # One by one
     
     for (m in 1:length(y)){ a <- y[m] # Get data for each year
-      
+    
       p <- read_html(sprintf("https://smart-lab.ru/dividends/index?year=%s",a))
       
       f <- p %>% html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Table
@@ -32,7 +32,7 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
             D <- rbind.data.frame(D, cbind(l[7 + n * 11],
                                            as.numeric(gsub(",", ".",
                                                            l[4+n*11])))) } } }
-        else { next } # Next Year
+      else { next } # Next Year
       
       ts <- D[,1] # Dates
       
@@ -56,41 +56,41 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
     
     if (is.null(P)){ P = L } else { P <- merge(x=P, y=L, by="Date", all=T) } }
     
-  dates <- P[,1] # Put dates into separate column
+    dates <- P[,1] # Put dates into separate column
     
-  P <- as.data.frame(P[,-1]) # Reduce excessive column
+    P <- as.data.frame(P[,-1]) # Reduce excessive column
     
-  for (n in 1:length(dates)){ while (dates[n] != dates[length(dates)]){
+    for (n in 1:length(dates)){ while (dates[n] != dates[length(dates)]){
       
-      if (isTRUE(dates[n + 1] == dates[n])){ # Add 1 when Double Dividends
+        if (isTRUE(dates[n + 1] == dates[n])){ # Add 1 when Double Dividends
         
-        dates[n + 1] <- paste(dates[n + 1], "1", sep = "") } #
+          dates[n + 1] <- paste(dates[n + 1], "1", sep = "") } #
       
-      break } } # End when the loop is over
+        break } } # End when the loop is over
     
   rownames(P) <- dates # Dates
   
   P[is.na(P)] <- 0 # Substitute NA with Zero values
   
-  if (is.null(s)){ dates <- rownames(P)[rownames(P) < e] # Dates
-    
+  if (is.null(s) && !is.null(e)){ d <- rownames(P)[rownames(P) < e] # Dates
+  
     P <- P[rownames(P) < e,] } # Only End Date submitted
   
-  else if (is.null(e)){ dates <- rownames(P)[rownames(P) > s] # Dates
-    
+  else if (!is.null(s) && is.null(e)){ d <- rownames(P)[rownames(P)>s] # Dates
+  
     P <- P[rownames(P) > s,] } # Only Start Date submitted
   
-  else if (is.null(s) && is.null(e)){ # When both submitted
+  else if (!is.null(s) && !is.null(e)){ # When both submitted
     
-    dates <- rownames(P)[rownames(P) > s & rownames(P) < e] # Dates
+    d <- rownames(P)[rownames(P) > s & rownames(P) < e] # Dates
     
     P <- P[rownames(P) > s & rownames(P) < e,] }  # Dividends for this Period
   
   if (isTRUE(is.character(P))){ P <- as.data.frame.numeric(P) # Make Numeric
   
-    rownames(P) <- dates # Dates
+    rownames(P) <- d # Dates
     colnames(P) <- x } # Tickers
   
   P # Display
 }
-rus.dividends(c("LKOH", "MAGN", "NVTK"), s = "2022-01-01") # Test
+rus.dividends(c("LKOH", "NVTK"), s = "2022-01-01", e = "2024-01-01") # Test
