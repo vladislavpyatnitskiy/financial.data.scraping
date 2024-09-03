@@ -5,29 +5,25 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
   l <- NULL # Store data here
   
   for (m in 1:length(x)){ v <- x[m] # For each ratio get Smartlab HTML
-  
-    s<-read_html(sprintf("https://smart-lab.ru/q/shares_fundamental/?field=%s",
-                         v))
-  
-    s.yahoo <- s %>% html_nodes('table') %>% .[[1]] -> tab
     
-    y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    y <- read_html(sprintf("https://smart-lab.ru/q/%s/?field=%s",
+                           "shares_fundamental",v)) %>% html_nodes('table') %>%
+      .[[1]] %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    df <- NULL # Variable for Table with Name, Ticker and values
+    D <- NULL # Variable for Table with Name, Ticker and values
     
-    for (n in 0:(length(y)/6)){ df <- rbind(df, cbind(y[(3+n*6)],y[(6+n*6)])) }
+    for (n in 0:(length(y)/6)){ D <- rbind(D, cbind(y[(3+n*6)],y[(6+n*6)])) }
     
-    df <- df[-nrow(df),] # Reduce last row
-    df[,2] <- gsub('["\n"]', '', gsub('["\t"]', '', df[,2]))
+    D <- D[-nrow(D),] # Reduce last row
+    D[,2] <- gsub('["\n"]', '', gsub('["\t"]', '', D[,2]))
     
-    for (n in 1:length(df)){ if (isTRUE(grepl(" ", df[n]))){
+    for (n in 1:length(D)){ if (isTRUE(grepl(" ", D[n]))){
       
-        df[n] <- gsub(" ", "", df[n]) } } # Reduce gap in market cap
+        D[n] <- gsub(" ","",D[n]) } } # Reduce gap in market cap
     
-    colnames(df) <- c("Ticker", gsub("_", "/", toupper(x[m]))) # Column names
+    colnames(D) <- c("Ticker", gsub("_", "/", toupper(x[m]))) # Column names
     
-    # Join
-    if (is.null(l)){ l<-df } else { l<-merge(x=l,y=df,by="Ticker",all=T) } } 
+    if (is.null(l)){ l <- D } else { l <- merge(x=l,y=D,by="Ticker",all=T) } } 
     
   if (isTRUE(l[1,1] == "")){ l <- l[-1,] } # Reduce empty row
   
