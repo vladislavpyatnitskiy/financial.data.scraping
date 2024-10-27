@@ -34,3 +34,11 @@ FYI: US version of Yahoo! Finance is temporarily for parsing, add uk. (e.g. "htt
 • quantmod
 
 • rvest
+
+## Installation
+
+You may clone my repository via command line:
+
+```
+git clone https://github.com/vladislavpyatnitskiy/financial.data.scraping.git
+```
