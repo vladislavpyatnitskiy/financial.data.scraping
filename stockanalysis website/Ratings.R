@@ -12,11 +12,17 @@ rating.sa <- function(x){ # Company Ratings
     p <- p %>% html_nodes('main') %>% html_nodes('div') %>%
       html_nodes('div') %>% html_text()
     
-    D <- rbind.data.frame(D, cbind(p[9], p[27], p[30])) } # Merge values
+    f <- unlist(strsplit(p[grepl("Price Target", p)][1], " "))
+    f <- f[length(f)]
+    
+    u <- unlist(strsplit(p[grepl("Upside", p)][1], " "))
+    u <- u[length(u)]
+    
+    D <- rbind.data.frame(D, cbind(p[9], f, u)) } # Merge values
     
   colnames(D) <- c("Current Price", "Predicted Price", "Upside") # Column names
   rownames(D) <- x # Tickers
   
   D # Display
 }
-rating.sa(c("AMZN", "C", "VALE")) # Test
+rating.sa(c("VIRT")) # Test
