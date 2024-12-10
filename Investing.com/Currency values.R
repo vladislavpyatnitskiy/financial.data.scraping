@@ -12,14 +12,12 @@ currency.values <- function(x){ # Currency values from investing.com
   
   l <- data.frame(p[grep("[/]", p)], p[grep("[/]", p) + 1]) # Data frame
   
-  for (n in 1:nrow(l)){ if (isTRUE(grepl(",", l[n,2]))){
+  for (n in 1:nrow(l)){ # Make data numeric and reduce commas
     
-    l[n,2] <- as.numeric(gsub(",", "", l[n,2])) } else {
-      
-      l[n,2] <- as.numeric(l[n,2]) } } # Make data numeric and reduce commas
+    l[n,2]=as.numeric(ifelse(grepl(",", l[n,2])==T,gsub(",","",l[n,2]),l[n,2]))}
   
   colnames(l) <- c("Currency", "Value") # Assign Column names
   
   l # Display
 }
-currency.values("streaming-forex-rates-majors")
+currency.values("streaming-forex-rates-majors") # Test
