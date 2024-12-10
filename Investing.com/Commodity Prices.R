@@ -19,11 +19,9 @@ commodity.prices <- function(x){ # Commodity Prices from investing.com
                                                           by=2)])
   colnames(l) <- c("Ticker", "Price") # Assign column names
   
-  for (n in 1:nrow(l)){ if (isTRUE(grepl(",", l[n,2]))){
+  for (n in 1:nrow(l)){ # Make data numeric and reduce commas
     
-      l[n,2] <- as.numeric(gsub(",", "", l[n,2])) } else {
-      
-      l[n,2] <- as.numeric(l[n,2]) } } # Make data numeric and reduce commas
+    l[n,2]=as.numeric(ifelse(grepl(",", l[n,2])==T,gsub(",","",l[n,2]),l[n,2]))}
   
   l # Display
 }
