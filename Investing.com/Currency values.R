@@ -4,11 +4,9 @@ currency.values <- function(x){ # Currency values from investing.com
   
   p <- read_html(sprintf("https://uk.investing.com/currencies/%s", x)) %>%
     html_nodes('table') %>% html_nodes('tbody') %>% html_nodes('tr') %>%
-    html_nodes('span') %>% html_text() # Get data
+    html_nodes('span') %>% html_text() # Get data & Delete :, %, blanks, duples
   
-  p <- p[!grepl(":", p) & !grepl("%", p) & !duplicated(p)] 
-  
-  p <- p[-1] # Delete :, %, blanks, duplicates
+  p <- p[!grepl(":", p) & !grepl("%", p) & !duplicated(p)][-1] 
   
   l <- data.frame(p[grep("[/]", p)], p[grep("[/]", p) + 1]) # Data frame
   
