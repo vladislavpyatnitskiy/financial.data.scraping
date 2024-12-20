@@ -11,12 +11,10 @@ sa.sector <- function(x){ # Sector data from stockanalytics website
     p <- p %>% html_nodes('body') %>% html_nodes('main') %>%
       html_nodes('div') %>% html_nodes('a') 
     
-    q <- p %>% html_attr('class') == "dothref text-default" # Clean data
+    q <- p %>% html_attr('class') == "dothref text-default" # Clean data & Join
     
-    S <- p[grep("TRUE", q)] %>% html_text()
+    l <- rbind.data.frame(l, p[grep("TRUE", q)] %>% html_text() %>% .[2]) } 
     
-    l <- rbind.data.frame(l, S[2]) } # Join 
-  
   rownames(l) <- x # tickers
   colnames(l) <- "Sector" # Column name
   
