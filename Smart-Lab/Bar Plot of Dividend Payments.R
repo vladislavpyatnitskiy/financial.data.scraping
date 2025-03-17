@@ -104,6 +104,8 @@ rus.dividends.bar.plt <- function(x, s = NULL, e = NULL){
   barplot(P, las = 2, main = sprintf("%s Dividend Payments",ticker))
   
   par(mar = c(6, 3.5, 6, 3.5)) # Define borders of the plot
+
+  grid(nx = 1, ny = NULL, lty = 3, col = "grey") # Horizontal lines
   
   box()
 }
