@@ -19,11 +19,11 @@ Enterprise Value/EBITDA | 73.27 | 74.01 | 17.27 | 21.37 | 17.60
 --------------
 Welcome to the Financial Data Scraping repository! This repository provides a convenient tool for fetching financial data from various sources including Yahoo Finance, Investing.com, SmartLab, and Finviz. Whether you're a data analyst, investor, or researcher, this tool simplifies the process of gathering crucial financial information for your analysis and decision-making.
 
-**FYI: script for Yahoo! Finance, Investing.com and Smart-lab are temporarily not working**
+**FYI: script for Yahoo! Finance and Investing.com are temporarily not working. For Smart-lab it is recommended to be on Russian Server.**
 
 ## Features:
 
-• Data from Multiple Sources: Access financial data from Yahoo Finance, Investing.com, SmartLab, and Finviz, allowing for comprehensive analysis and comparison.
+• Data from Multiple Sources: Access financial data from Yahoo Finance, Investing.com, SmartLab, stockanalytics and Finviz web sites, allowing for comprehensive analysis and comparison.
 
 • Easy-to-Use Interface: Simple and intuitive functions make it easy to retrieve data with just a few lines of code.
 
