@@ -3,18 +3,15 @@ lapply(c("quantmod", "timeSeries"), require, character.only = T) # libraries
 prices.yahoo <- function(y, s = NULL, e = NULL){ # Stock Price Data from Yahoo
   
   p <- NULL # 4 scenarios: no dates, only start or end dates, both dates
+  src <- "yahoo"
   
-  for (A in y){ if (is.null(s) && is.null(e)) { 
-    
-      q <- getSymbols(A, src = "yahoo", auto.assign = F)
-    
-    } else if (is.null(e)){ q <- getSymbols(A,from=s,src="yahoo",auto.assign=F)
-  
-    } else if (is.null(s)){ q <- getSymbols(A, to=e, src="yahoo",auto.assign=F)
-  
-    } else { q <- getSymbols(A, from = s, to = e, src="yahoo", auto.assign=F) }
-    
-    p <- cbind(p, q[,4]) } # Join all columns into one data frame
+  getData <- function(A, s, e) {
+    if (is.null(s) && is.null(e)) return(getSymbols(A, src=src, auto.assign=F)) 
+    if (is.null(e)) return(getSymbols(A, from = s, src=src, auto.assign=F)) 
+    if (is.null(s)) return(getSymbols(A, to = e, src=src, auto.assign=F)) 
+    return(getSymbols(A, from = s, to = e, src=src, auto.assign=F)) 
+  }
+  for (A in y){ p <- cbind(p, getData(A, s, e)[,4]) } # Join data
   
   p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
   
