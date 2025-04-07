@@ -6,10 +6,9 @@ sa.sector <- function(x){ # Sector data from stockanalytics website
   
   for (n in 1:length(x)){ y <- x[n] # Get data
   
-    p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/", tolower(y)))
-    
-    p <- p %>% html_nodes('body') %>% html_nodes('main') %>%
-      html_nodes('div') %>% html_nodes('a') 
+    p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/",
+                           tolower(y))) %>% html_nodes('body') %>%
+      html_nodes('main') %>% html_nodes('div') %>% html_nodes('a') 
     
     q <- p %>% html_attr('class') == "dothref text-default" # Clean data & Join
     
