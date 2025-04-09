@@ -17,23 +17,31 @@ Enterprise Value/EBITDA | 73.27 | 74.01 | 17.27 | 21.37 | 17.60
 
 #### Table. 1. Example of scraped data from security's statistics tab of Yahoo! Finance
 --------------
-Welcome to the Financial Data Scraping repository! This repository provides a convenient tool for fetching financial data from various sources including Yahoo Finance, Investing.com, SmartLab, and Finviz. Whether you're a data analyst, investor, or researcher, this tool simplifies the process of gathering crucial financial information for your analysis and decision-making.
+Welcome to the Financial Data Scraping repository! This repository provides a convenient tool for fetching financial data from various sources including Yahoo Finance, Investing.com, SmartLab and Finviz. Whether you're a data analyst, investor, or researcher, this tool simplifies the process of gathering crucial financial information for your analysis and decision-making.
 
 **FYI: script for Yahoo! Finance and Investing.com are temporarily not working. For Smart-lab it is recommended to be on Russian Server.**
 
 ## Features:
 
-• Data from Multiple Sources: Access financial data from Yahoo Finance, Investing.com, SmartLab, stockanalytics and Finviz web sites, allowing for comprehensive analysis and comparison.
+• Data from Multiple Sources: Access financial data from Yahoo Finance, Investing.com, SmartLab, stockanalytics and Finviz web sites, allowing for comprehensive analysis and comparison. 
+
+• Price data from sources like Yahoo! Finance and Moscow Exchange (Russian Stocks).
 
 • Easy-to-Use Interface: Simple and intuitive functions make it easy to retrieve data with just a few lines of code.
 
-• Customizable Parameters: Customize your data requests with parameters tailored to your specific needs, such as date range, stock symbols, and more.
+• Customisable Parameters: Customise your data requests with parameters tailored to your specific needs, such as date range, stock symbols and more.
 
 ## Libraries
 
 • quantmod
 
 • rvest
+
+• httr
+
+• xml2
+
+• moexer
 
 ## Installation
 
