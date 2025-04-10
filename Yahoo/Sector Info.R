@@ -1,20 +1,25 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
-c.sector <- function(x){ l <- NULL # Create list
+c.sector <- function(x){ L <- NULL # Create list
+  
+  for (n in 1:length(x)){ s <- x[n]
+    
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
+    
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/profile", s),
+                    add_headers(`User-Agent` = B))
+    
+    f <- read_html(content(response, as = "text", encoding = "UTF-8")) %>%
+      html_nodes('div') %>% html_nodes('dl') %>%
+      html_nodes('dd') %>% html_nodes('strong') %>% html_text() %>% .[1]
+    
+    L <- rbind.data.frame(L, f) } # Join
 
-  for (n in 1:length(x)){ s <- x[n] # For each security find sector
+  colnames(L) <- "Sector" # 
+  rownames(L) <- x #
   
-    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/profile", s))
-    
-    Y <- p %>% html_nodes('div') %>% .[[1]] -> tab
-    
-    y <- tab %>% html_nodes('p') %>% html_nodes('span') %>% html_text()
-    
-    l <- rbind(l, y[grep("Sector", y) + 1]) } # Add to list
-    
-  colnames(l) <- "Sector" # 
-  rownames(l) <- x #
-  
-  l # Display
+  L # Display
 }
 c.sector(x = c("AAPL", "NRG", "PVH", "C")) # Test
