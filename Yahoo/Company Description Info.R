@@ -1,19 +1,25 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
-c.description <- function(x){ l <- NULL # Get Company Info
+c.description <- function(x){ # Description info for securities
+  
+  l <- NULL # Get Company Info
 
   for (n in 1:length(x)){ s <- x[n]
   
-    p <- sprintf("https://uk.finance.yahoo.com/quote/%s/profile?p=%s", s, s)
-      
-    page.p <- read_html(p) # Read HTML & extract necessary info
-      
-    price.yahoo1 <- page.p %>% html_nodes('div') %>% .[[1]] -> tab
-      
-    y <- tab %>% html_nodes('p') %>% html_text() # Transform to text
-      
-    l <- list(l, y[length(y) - 1]) } # Add description to list
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
     
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/profile/",
+                            s), add_headers(`User-Agent` = B))
+    
+    y <- read_html(response) %>% html_nodes('main') %>%
+      html_nodes('section') %>% html_nodes('section') %>%
+      html_nodes('article') %>% html_nodes('section') %>%
+      html_nodes('section') %>% html_nodes('p') %>% html_text()
+    
+    l <- c(l, y) } # Add description to list
+  
   l # Display
 }
-c.description(c("AAPL", "VALE", "X")) # Test
+c.description(c("AAPL", "X", "C")) # Test
