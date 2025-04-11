@@ -1,27 +1,30 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
 s.names <- function(x){ # Data Frame with tickers and names
   
-  l <- NULL # Store data
+  l <- NULL
   
-  for (n in 1:length(x)){ a <- x[n] # Get names for all securities in the list
+  for (n in 1:length(x)){ s <- x[n]
     
-    s <- read_html(sprintf("https://finance.yahoo.com/quote/%s/", a))
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
     
-    tab <- s %>% html_nodes('body') %>% .[[1]] # Assign Body
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/%s/", s,
+                            "key-statistics"), add_headers(`User-Agent` = B))
     
-    y <- tab %>% html_nodes('div') %>% html_nodes('h1') # 
+    y <- read_html(response) %>% html_nodes('body') %>% .[[1]] %>%
+      html_nodes('div') %>% html_nodes('h1') %>% .[2] %>% html_text() 
     
-    y <- y[2] %>% html_text() # Subtract company name and clean value
-  
-    l <- rbind(l, read.fwf(textConnection(y), widths=c(nchar(y)-nchar(a)-3, 1),
+    l <- rbind(l, read.fwf(textConnection(y),
+                           widths = c(nchar(y) - nchar(s) - 3, 1),
                            colClasses = "character")[,1]) } # Join names
     
-  s.list <- data.frame(x, l) # Join tickers with names
+  DF <- data.frame(x, l) # Join tickers with names
   
-  rownames(s.list) <- seq(nrow(s.list)) # row names
-  colnames(s.list) <- c("Ticker", "Name") # Column names
+  rownames(DF) <- seq(nrow(DF)) # row names
+  colnames(DF) <- c("Ticker", "Name") # Column names
   
-  s.list # Display
+  DF # Display
 }
-s.names(c("C", "X", "AAPL")) # Test
+s.names("AAPL") # Test
