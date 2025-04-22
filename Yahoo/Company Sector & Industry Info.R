@@ -1,22 +1,27 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
 c.full.info <- function(x){ # info about company sector & industry
   
-  l <- NULL # Create list
-  
-  for (n in 1:length(x)){ s <- x[n] # For each security find industry
-  
-    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/profile", s))
+  L <- NULL # Create list
 
-    Y <- p %>% html_nodes('div') %>% .[[1]] -> tab
-    
-    y <- tab %>% html_nodes('p') %>% html_nodes('span') %>% html_text()
-    
-    l <- rbind(l, cbind(y[3], y[5])) } # Add to list
-    
-  colnames(l) <- c("Sector", "Industry") # column names sectors & industries
-  rownames(l) <- x # Tickers
+  for (n in 1:length(x)){ s <- x[n]
   
-  l # Display
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
+    
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/profile",
+                            s), add_headers(`User-Agent` = B))
+    
+    f <- read_html(content(response, as = "text", encoding = "UTF-8")) %>%
+      html_nodes('div') %>% html_nodes('dl') %>% html_nodes('div') %>%
+      html_nodes('strong') %>% html_text() 
+    
+    L <- rbind.data.frame(L, cbind(f[1], f[2])) } # Join
+    
+  colnames(L) <- c("Sector", "Industry") # 
+  rownames(L) <- x #
+  
+  L # Display
 }
 c.full.info(x = c("AAPL", "NRG", "PVH", "C")) # Test
