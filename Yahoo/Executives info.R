@@ -1,20 +1,23 @@
-library("rvest")
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
 c.executives <- function(x){ # Get info about executives
   
-  p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/profile", x))
+  B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+             "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+             sep = " ")
   
-  tab <- p %>% html_nodes('table') %>% .[[1]]
+  response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/profile",
+                          x), add_headers(`User-Agent` = B))
   
-  y <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+  p <- read_html(content(response, as = "text", encoding = "UTF-8")) %>%
+    html_nodes('table') %>% .[[1]] %>% html_nodes('tr') %>%
+    html_nodes('td') %>% html_text()
   
-  D <- NULL # Create space for data frame
-  
-  for (n in 1:(length(y) / 10)){ d <- NULL # Structure Data
-  
-    for (m in seq(0, 9)){ d <- rbind(d, y[(n + m * 5)]) }
-    
-    if (is.null(D)){ D <- d } else { D <- cbind(D, d) } } 
+  D <- cbind.data.frame(p[seq(from = 1, to = length(p), by = 5)],
+                        p[seq(from = 2, to = length(p), by = 5)],
+                        p[seq(from = 3, to = length(p), by = 5)],
+                        p[seq(from = 4, to = length(p), by = 5)],
+                        p[seq(from = 5, to = length(p), by = 5)])
   
   colnames(D) <- c("Name", "Title", "Pay", "Exercised", "Year Born")
   
