@@ -1,34 +1,51 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
-statistics.yahoo <- function(x, y = 1, transpose = F){ # Statistics for Stocks
+statistics.yahoo <- function(x, ts = T){ # Statistics for Stocks
   
   DF <- NULL # Set up list for infos
   
-  for (n in 1:length(x)){ j <- x[n] # For each security get info
+  for (n in 1:length(x)){ 
   
-    s <- sprintf("https://uk.finance.yahoo.com/quote/%s/key-statistics?p=%s",
-                 j, j)
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
     
-    s.page <- read_html(s) # Read HTML of page
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/%s/",
+                            x[n], "key-statistics"),
+                    add_headers(`User-Agent` = B))
     
-    s.yahoo <- s.page %>% html_nodes('table') %>% .[[y]] -> tab # Assign Table 
+    p <- read_html(content(response, as = "text", encoding = "UTF-8")) %>%
+      html_nodes('table') %>% .[[1]] 
     
-    s <- tab %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    i <- p %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
+    h <- p %>% html_nodes('thead') %>% html_nodes('th') %>% html_text()
     
-    D <- NULL # Data Frame values, like names for ratios and numbers
     
-    for (n in 0:(length(s)/2)){ D <- rbind(D, cbind(s[(1+n*2)], s[(2+n*2)])) } 
+    if (ts){
     
-    D <- D[-nrow(D),] # Reduce excessive row
-    
-    rownames(D) <- D[,1] # Assign row names
-    
-    D <- subset(D, select = -c(1)) # Reduce excess column
-    
-    colnames(D) <- j # Assign column name
-    
-    if (is.null(DF)){ DF <- D } else { DF <- cbind(DF, D) } }
-    
-  if (isTRUE(transpose)){ t(DF) } else { DF } # Display
+      D <- cbind.data.frame(i[seq(from = 1, to = length(i), by = 7)],
+                            i[seq(from = 2, to = length(i), by = 7)],
+                            i[seq(from = 3, to = length(i), by = 7)],
+                            i[seq(from = 4, to = length(i), by = 7)],
+                            i[seq(from = 5, to = length(i), by = 7)],
+                            i[seq(from = 6, to = length(i), by = 7)],
+                            i[seq(from = 7, to = length(i), by = 7)])
+      
+      colnames(D) <- h 
+      
+      DF <- list(DF, D) } else {
+        
+        D <- cbind.data.frame(i[seq(from = 1, to = length(i), by = 7)],
+                              i[seq(from = 2, to = length(i), by = 7)])
+        
+        colnames(D) <- c("", x[n]) 
+        
+        rownames(D) <- D[,1] # Assign row names
+        
+        D <- subset(D, select = -c(1)) 
+        
+        if (is.null(DF)){ DF <- D } else { DF <- cbind(DF, D) } }
+  }
+  DF
 }
-statistics.yahoo(x = c("AAPL", "MSFT"), 1, transpose = F) # Test
+statistics.yahoo(c("AAPL"), ts=F) # Test
