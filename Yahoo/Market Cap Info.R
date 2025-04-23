@@ -1,4 +1,4 @@
-library("rvest") # Library
+lapply(c("rvest", "httr", "xml2"), require, character.only = T) # Libs
 
 c.marketcap <- function(x, caplevel = F){ # Market Cap info via string or table
   
@@ -11,26 +11,32 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap info via string or table
   
   for (n in 1:length(x)){ # Read HTML & extract necessary info
     
-    p <- read_html(sprintf("https://uk.finance.yahoo.com/quote/%s/%s", x[n],
-                           "key-statistics")) 
+    B <- paste("Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "AppleWebKit/537.36", "Chrome/122.0.0.0", "Safari/537.36",
+               sep = " ")
     
-    i <- p %>% html_nodes('div') %>% .[[1]] %>% html_nodes('tr') %>%
+    response <- GET(sprintf("https://uk.finance.yahoo.com/quote/%s/%s/",
+                            x[n], "key-statistics"),
+                    add_headers(`User-Agent` = B))
+    
+    i <- read_html(content(response, as = "text", encoding = "UTF-8")) %>%
+      html_nodes('table') %>% .[[1]] %>% html_nodes('tr') %>%
       html_nodes('td') %>% html_text()
     
     s <- i[grep("Market cap", i) + 1] # Market Cap Info
     
-    s <- read.fwf(textConnection(s), widths = c(nchar(s) - 1, 1),
+    s <- read.fwf(textConnection(s), widths = c(nchar(s) - 2, 1),
                   colClasses = "character")
     
-    if (s[1,2] == "M"){ s <- as.numeric(s[1,1])/1000 } else if (s[1,2] == "T"){
-      
-      s <- as.numeric(s[1,1]) * 1000 } else { s <- as.numeric(s[1,1]) }
+    v <- as.numeric(s[1,1]) # Make data numeric
+    
+    s <- switch(s[1,2], "M" = v / 1000, "B" =  v, "T" = v * 1000)
     
     if (isFALSE(caplevel)){ for (n in 1:length(j)){ # Market Cap Levels
       
-      if (s > j[[n]][[1]] && s < j[[n]][[2]]){ l <- j[[n]][[4]] 
-      
-      } else if (s > 200){ l <- "Mega-Cap" } else { next } } 
+        if (s > j[[n]][[1]] && s < j[[n]][[2]]){ l <- j[[n]][[4]] 
+        
+        } else if (s > 200){ l <- "Mega-Cap" } else { next } } 
       
       # Market Cap Level with values OR Market Cap values only
       df <- rbind.data.frame(df, cbind(l, s)) } else { df <- rbind(df, s) } }
@@ -61,4 +67,4 @@ c.marketcap <- function(x, caplevel = F){ # Market Cap info via string or table
                      toString(names(which(c>j[[n]][[1]] & c<j[[n]][[2]])))))} }
     m } # Display
 }
-c.marketcap(c("AAPL", "AIG", "SWBI"), caplevel = T) # Test
+c.marketcap(c("AAPL", "AIG", "SWBI", "NRG"), caplevel = F) # Test
