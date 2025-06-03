@@ -10,9 +10,7 @@ sa.sector <- function(x){ # Sector data from stockanalytics website
                            tolower(y))) %>% html_nodes('body') %>%
       html_nodes('main') %>% html_nodes('div') %>% html_nodes('a') 
     
-    q <- p %>% html_attr('class') == "dothref text-default" # Clean data & Join
-    
-    l <- rbind.data.frame(l, p[grep("TRUE", q)] %>% html_text() %>% .[2]) } 
+    l <- rbind.data.frame(l, p[grep("sector", p)] %>% html_text()) } 
     
   rownames(l) <- x # tickers
   colnames(l) <- "Sector" # Column name
