@@ -1,13 +1,34 @@
 # Use Data Frame from function enabling to get data from Smartlab website
-smartlab.screener <- function(x){ # Screener for stocks
+smartlab.screener <- function(x,
+                              levebitda = NULL, hevebitda = NULL, 
+                              ldebtebitda = NULL, hdebtebitda = NULL, 
+                              lpe = NULL, hpe = NULL, 
+                              lpbv = NULL, hpbv = NULL, 
+                              lps = NULL, hps = NULL, 
+                              lpfcf = NULL, hpfcf = NULL, 
+                              lmc = NULL, hmc = NULL){ 
   
-  for (n in 1:ncol(x)){ x[,n] <- as.numeric(x[,n]) } # Make data numeric
+  # Named list: each entry is a list(low, high)
+  filters <- list(
+    `EV/EBITDA` = list(levebitda, hevebitda), # EV / EBITDA
+    `DEBT/EBITDA` = list(ldebtebitda, hdebtebitda), # DEBT / EBITDA
+    `P/E` = list(lpe, hpe), # Price to Earnings
+    `P/BV` = list(lpbv, hpbv), # Price to Book Value
+    `P/S` = list(lps, hps), # Price to Sales
+    `P/FCF` = list(lpfcf, hpfcf), # Price to Free Cash Flow
+    `MARKET/CAP` = list(lmc, hmc) # Market Capitalisation
+  )
   
-  # Screener settings
-  sm.model1 <- x[x$`EV/EBITDA` < 10 & x$`DEBT/EBITDA` < 4 & x$`P/E` < 20 &
-                   x$`P/BV` < 3 & x$`P/BV` > 0 & x$`P/E` > 0 & x$`P/S` < 2 &
-                   x$`P/S` > 0,]
+  for (n in names(filters)) { B <- filters[[n]]
+    
+    # Apply lower bound if not NULL
+    if (!is.null(B[[1]])) { x <- x[!is.na(x[[n]]) & x[[n]] >= B[[1]], ] }
+    
+    # Apply upper bound if not NULL
+    if (!is.null(B[[2]])) { x <- x[!is.na(x[[n]]) & x[[n]] <= B[[2]], ] }
+  }
   
-  na.omit(sm.model1) # Display clean data
+  na.omit(x)
 }
-smartlab.screener(sm_data1) # Test
+smartlab.screener(sm_data4, hevebitda = 5, hdebtebitda = 2, hpe = 10, lpe = 0,
+                  hpfcf = 10, lpfcf = 0, hpbv = 1, hps = 2, lps = 0, lpbv = 0)
