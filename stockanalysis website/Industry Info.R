@@ -1,8 +1,8 @@
 library(rvest) # Library
 
-sa.industry <- function(x){ # Sector data from stockanalytics website
+sa.industry <- function(x, agg = F){ # Get sector info for portfolio stocks
   
-  l <- NULL
+  L <- NULL # Create list
   
   for (n in 1:length(x)){ y <- x[n] # Get data
   
@@ -10,11 +10,17 @@ sa.industry <- function(x){ # Sector data from stockanalytics website
                            tolower(y))) %>% html_nodes('body') %>%
       html_nodes('main') %>% html_nodes('div') %>% html_nodes('a') 
     
-    l <- rbind.data.frame(l, p[grep("industry", p)] %>% html_text()) } 
-    
-  rownames(l) <- x # tickers
-  colnames(l) <- "Industry" # Column name
+    L <- rbind.data.frame(L, p[grep("industry", p)] %>% html_text()) } 
+
+  colnames(L) <- "Industry"
+  rownames(L) <- x # tickers
   
-  l # Display
+  if (agg){ # If you want to know companies belong to each industry
+    
+    df <- data.frame(Ticker=rownames(L),Industry=L$Industry,stringsAsFactors=F)
+    
+    L <- aggregate(Ticker ~ Industry, data = df,
+                   FUN = function(x) paste(x, collapse = ", ")) }
+  L # Display
 }
-sa.industry(c("STLA", "X")) # Test
+sa.industry(c("STLA", "X"), T) # Test
