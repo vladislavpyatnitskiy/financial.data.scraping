@@ -25,7 +25,7 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
     
     if (is.null(l)){ l <- D } else { l <- merge(x=l,y=D,by="Ticker",all=T) } } 
     
-  if (isTRUE(l[1,1] == "")){ l <- l[-1,] } # Reduce empty row
+  l <- subset(l, !apply(l == "", 1, any)) # Reduce empty row
   
   rownames(l) <- l[,1] # Move tickers to row names
   
