@@ -12,20 +12,21 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
     
     D <- NULL # Variable for Table with Name, Ticker and values
     
-    for (n in 0:(length(y)/6)){ D <- rbind(D, cbind(y[(3+n*6)],y[(6+n*6)])) }
+    for (n in 0:(length(y)/6)){ D <- rbind(D, cbind(y[(3+n*7)],y[(6+n*7)])) }
     
     D <- D[-nrow(D),] # Reduce last row
+    
     D[,2] <- gsub('["\n"]', '', gsub('["\t"]', '', D[,2]))
     
-    for (n in 1:length(D)){ if (isTRUE(grepl(" ", D[n]))){
-      
-        D[n] <- gsub(" ","",D[n]) } } # Reduce gap in market cap
+    D <- gsub(" ", "", D) # Reduce gap in market cap
     
-    colnames(D) <- c("Ticker", gsub("_", "/", toupper(x[m]))) # Column names
+    colnames(D) <- c("Ticker", gsub("_", "/", toupper(v))) # Column names
     
-    if (is.null(l)){ l <- D } else { l <- merge(x=l,y=D,by="Ticker",all=T) } } 
+    D <- subset(D, !apply(D == "", 1, any)) # Reduce empty row
     
-  l <- subset(l, !apply(l == "", 1, any)) # Reduce empty row
+  if (is.null(l)){ l <- D } else { l <- merge(x=l,y=D,by="Ticker",all=T) } } 
+  
+  l <- l[-1,]
   
   rownames(l) <- l[,1] # Move tickers to row names
   
@@ -35,4 +36,4 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
   
   return(l) # Display
 }
-smartlab.ratios(x=c("market_cap","p_e","p_bv","p_s","ev_ebitda","debt_ebitda"))
+smartlab.ratios(x=c("market_cap", "p_e","p_bv","p_s","ev_ebitda","debt_ebitda"))
