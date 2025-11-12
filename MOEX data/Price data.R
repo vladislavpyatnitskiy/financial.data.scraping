@@ -1,6 +1,6 @@
 lapply(c("moexer", "xts", "timeSeries"), require, character.only = T) # Libs
 
-prices.moex <- function(x, s = NULL, e = NULL){
+prices.moex <- function(x, s = NULL, e = NULL, split = F, all=F){
   
   p <- NULL # 4 scenarios: no dates, only start or end dates, both dates
   
@@ -15,12 +15,24 @@ prices.moex <- function(x, s = NULL, e = NULL){
     
     D <- D[!duplicated(D),] # Remove duplicates
     
-    p <- cbind(p, xts(D[, 1], order.by = as.Date(D[, 2]))) }
-  
-  p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
-  
-  colnames(p) <- x # Assign column names
+    D <- xts(D[,1], order.by = as.Date(D[,2])) # Move dates to row names
+    
+    colnames(D) <- A # Put the tickers in data set
+    
+    D <- as.timeSeries(D) # Make it time series
+    
+    if (A == "BELU" & isTRUE(split) &
+        (isTRUE(s < "2024-08-15" | e < "2024-08-15") |
+         isTRUE(is.null(s) | is.null(e)))){
+      
+      f <- which(rownames(D) == "2024-08-15")
+    
+      D[c(1:f),] <- D[c(1:f),] / 8 } # Adjustments for Novabev stock
+    
+    p <- cbind(p, D) } # Merge
+    
+  if (!all) p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
   
   as.timeSeries(p) # Display time series
 }
-prices.moex(c("RTSI", "SBER", "ROSN")) # Test
+prices.moex(c("ROSN", "BELU"), s = "2024-07-01", split = T, all = T) # Test
