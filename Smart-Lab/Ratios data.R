@@ -9,7 +9,9 @@ smartlab.ratios <- function(x){ # Function to get info from Smartlab
     y <- read_html(sprintf("https://smart-lab.ru/q/%s/?field=%s",
                            "shares_fundamental",v)) %>% html_nodes('table') %>%
       .[[1]] %>% html_nodes('tr') %>% html_nodes('td') %>% html_text()
-    
+
+    message(sprintf("%s is downloaded", gsub("_", "/", toupper(v))))
+                         
     D <- NULL # Variable for Table with Name, Ticker and values
     
     for (n in 0:(length(y)/6)){ D <- rbind(D, cbind(y[(3+n*7)],y[(6+n*7)])) }
