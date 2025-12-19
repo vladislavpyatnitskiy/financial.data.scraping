@@ -9,7 +9,14 @@ sa.sector <- function(x, agg = F){ # Sector data from stockanalytics website
     p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/",
                            tolower(y))) %>% html_nodes('body') %>%
       html_nodes('main') %>% html_nodes('div') %>% html_nodes('a') 
-    
+
+    message(
+      sprintf(
+        "%s sector data is downloaded (%s from %s)",
+        y, which(x == y), length(x)
+      )
+    )
+                         
     L <- rbind.data.frame(L, p[grep("sector", p)] %>% html_text()) } 
     
   rownames(L) <- x # tickers
