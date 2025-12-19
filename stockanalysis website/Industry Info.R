@@ -9,7 +9,14 @@ sa.industry <- function(x, agg = F){ # Get sector info for portfolio stocks
     p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/",
                            tolower(y))) %>% html_nodes('body') %>%
       html_nodes('main') %>% html_nodes('div') %>% html_nodes('a') 
-    
+
+    message(
+      sprintf(
+        "%s industry data is downloaded (%s from %s)",
+        y, which(x == y), length(x)
+      )
+    )
+                         
     L <- rbind.data.frame(L, p[grep("industry", p)] %>% html_text()) } 
 
   colnames(L) <- "Industry"
