@@ -2,7 +2,7 @@ lapply(c("moexer", "timeSeries", "xts"), require, character.only = T) # Libs
 
 moex.calendar <- function(x, s = NULL, e = NULL, transpose = F, data = T){
  
-  if (isTRUE(data)){ p <- NULL # Loop for data extraction 
+  if (data){ p <- NULL # Loop for data extraction 
     
     getData <- function(A, s, e) { 
       if (is.null(s) && is.null(e))
@@ -12,15 +12,22 @@ moex.calendar <- function(x, s = NULL, e = NULL, transpose = F, data = T){
       return(get_candles(A, from = s, till = e, interval = 'daily')) 
     }
     for (A in x){ D <- as.data.frame(getData(A, s, e)[,c(3,8)])
-    
-    D <- D[!duplicated(D),] # Remove duplicates
-    
-    p <- cbind(p, xts(D[, 1], order.by = as.Date(D[, 2]))) }
-    
-    p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
-    
-    colnames(p) <- x } else { p <- x } 
-    
+
+     message(
+      sprintf(
+       "%s is downloaded; %s from %s", 
+       A, which(x == A), length(x)
+      )
+     )
+                 
+     D <- D[!duplicated(D),] # Remove duplicates
+     
+     p <- cbind(p, xts(D[, 1], order.by = as.Date(D[, 2]))) }
+     
+     p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
+     
+     colnames(p) <- x } else { p <- x } 
+     
   r <- diff(log(as.timeSeries(p)))[-1,] # Calculate logs
   
   calendar <- NULL # to store data frames
