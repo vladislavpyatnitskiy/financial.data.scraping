@@ -9,6 +9,13 @@ moex.correlation <- function(x){ # Correlation coefficients for Russian stocks
     D <- as.data.frame(get_candles(a, "2007-01-01", till = as.Date(Sys.Date()),
                                    interval = 'daily')[,c(3,8)])
     
+    message(
+      sprintf(
+        "%s is downloaded; %s from %s", 
+        a, which(x == a), length(x)
+      )
+    )
+    
     D <- D[!duplicated(D),] # Remove duplicates
     
     p <- cbind(p, xts(D[, 1], order.by = as.Date(D[, 2]))) }
@@ -17,8 +24,6 @@ moex.correlation <- function(x){ # Correlation coefficients for Russian stocks
   
   colnames(p) <- x
   
-  correlation = diff(log(as.timeSeries(p)))[-1,] # returns matrix 
-  
-  cor(correlation)  
+  cor(diff(log(as.timeSeries(p)))[-1,]) # returns matrix 
 }
 moex.correlation(c("LKOH", "SBER", "MGNT"))
