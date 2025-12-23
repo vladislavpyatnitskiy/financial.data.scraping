@@ -11,6 +11,13 @@ beta.moex <- function(y){ # Beta values for Russian stocks
   for (A in y){ D <- as.data.frame(get_candles(A, start_date,
                                                till = as.Date(Sys.Date()),
                                                interval = 'daily')[,c(3,8)])
+
+    message(
+      sprintf(
+        "%s is downloaded; %s from %s", 
+        A, which(y == A), length(y)
+      )
+    )
   
     D <- D[!duplicated(D),] # Remove duplicates
     
