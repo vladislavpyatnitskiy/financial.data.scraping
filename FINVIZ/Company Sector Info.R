@@ -8,6 +8,13 @@ finviz.sector <- function(x){ l <- NULL # Where to contain values
       html_nodes('body') %>% .[[1]] %>% html_nodes('div') %>%
       html_elements('a') %>% html_text()   
     
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        s, which(x == s), length(x)
+      )
+    )
+    
     l <- rbind(l, y[4]) } # Join
     
   colnames(l) <- "Sector" # Column name for data frame
