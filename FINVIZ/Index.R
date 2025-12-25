@@ -3,11 +3,11 @@ library("rvest") # Library
 finviz.ratios.index <- function(x){ v <- NULL # Where to store values
 
   for (n in 1:length(x)){ j <- x[n] # Assign security and read HTML of page
-    
+
     y <- read_html(sprintf("https://finviz.com/quote.ashx?t=%s&p=d", j)) %>%
-      html_nodes('body') %>% .[[1]] %>% html_nodes('div') %>% 
-      html_elements('a') %>% html_text() 
-      
+      html_nodes('div') %>% html_nodes('table') %>% html_nodes('tr') %>% 
+      html_nodes('td') %>% html_nodes('small') %>% html_text() %>% .[1]   
+    
     message(
       sprintf(
         "%s is downloaded (%s / %s)", 
@@ -15,7 +15,7 @@ finviz.ratios.index <- function(x){ v <- NULL # Where to store values
       )
     )
     
-    v <- rbind(v, y[7]) } # Join
+    v <- rbind(v, y) } # Join
     
   rownames(v) <- x
   colnames(v) <- "Index"
