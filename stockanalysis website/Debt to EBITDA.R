@@ -10,11 +10,18 @@ debt.editda.sa <- function(x){ # Debt / EBITDA ratio
                            tolower(x[n]))) %>% html_nodes('table') %>%
       html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        x[n], which(x == x[n]), length(x)
+      )
+    )
+    
     L <- rbind.data.frame(L, as.numeric(p[grep("Debt / EBITDA ", p) + 1])) }
   
   rownames(L) <- x # tickers as row names
   colnames(L) <- "Debt/EBITDA" # Column name
-
+  
   L # Display
 }
 debt.editda.sa(c("ZIM", "AMZN")) # Test
