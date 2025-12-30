@@ -5,12 +5,19 @@ stock.analysis.isin <- function(x){ # ISIN Number of the stock
   l <- NULL
   
   for (n in 1:length(x)){ i <- x[n]
-  
+    
     p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/company/",
                            i)) %>% html_nodes('table') %>% .[[3]] %>%
-      html_nodes('tr') %>% html_nodes('td') %>% html_text() 
+      html_nodes('tr') %>% html_nodes('td') %>% html_text()
     
-    l <- rbind(l, p[14]) } # Data Frame with ISIN Number
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        i, which(x == i), length(x)
+      )
+    )
+    
+    l <- rbind(l, p[grep("ISIN Number", p) + 1]) } # Data Frame of ISIN 
     
   rownames(l) <- x # Tickers
   colnames(l) <- "ISIN" # ISIN
