@@ -9,7 +9,14 @@ balance.sheet.sa <- function(x, sort = T){ # Data for Balance Sheet
     p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/financials/%s/",
                            tolower(i), "balance-sheet")) %>%
       html_nodes('body') %>% html_nodes('table') %>% html_nodes('tr') 
-    
+
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        i, which(x == i), length(x)
+      )
+    )
+                         
     R <- p %>% html_nodes('td') %>% html_text() # Main data
     C <- p %>% html_nodes('th') %>% html_text() # Titles (Column names)
     
