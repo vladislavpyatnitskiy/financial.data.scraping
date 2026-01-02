@@ -9,6 +9,13 @@ rating.sa <- function(x){ # Company Ratings
     p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/ratings/",
                            tolower(x[n]))) %>% html_nodes('main') %>%
       html_nodes('div') %>% html_nodes('div') %>% html_text()
+                         
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        x[n], which(x == x[n]), length(x)
+      )
+    )
     
     d <- NULL # Info with Predicted Price and Upside
     
