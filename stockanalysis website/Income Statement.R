@@ -2,24 +2,56 @@ library(rvest) # Library
 
 income.statement.sa <- function(x, sort = T){ # Income Statement 
   
-  p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/financials/",
-                         tolower(x))) %>% html_nodes('table') %>%
-    html_nodes('tr')
+  L <- NULL 
   
-  R <- p %>% html_nodes('td') %>% html_text() # Main data
-  C <- p %>% html_nodes('th') %>% html_text() # Titles (Column names)
+  for (n in 1:length(x)){ i = x[n] # Ticker
   
-  C <- unlist(strsplit(gsub('["\n"]', '', gsub('["\t"]', '', C[2:6])), " "))
+    p <- read_html(sprintf("https://stockanalysis.com/stocks/%s/financials/",
+                           tolower(i))) %>% html_nodes('body') %>% 
+      html_nodes('table') %>% html_nodes('tr') 
+    
+    message(
+      sprintf(
+        "%s is downloaded (%s / %s)", 
+        i, which(x == i), length(x)
+      )
+    )
+    
+    R <- p %>% html_nodes('td') %>% html_text() # Main data
+    C <- p %>% html_nodes('th') %>% html_text() # Titles (Column names)
+    
+    C <- unlist(strsplit(gsub('["\n"]', '', gsub('["\t"]', '', C[1:7])), " "))
+    
+    if (isTRUE("TTM" %in% C)){ C <- c("TTM", C[grep("FY", C) + 1]) }
+    
+    else { C <- C[grep("FY", C) + 1] } # Titles (Column names)
+    
+    vals <- na.omit(c(R[1], R[grep("Upgrade", R) + 1])) # Financial Data
+    
+    vals <- vals[!is.na(vals)] # Reduce NA
+    
+    R <- R[-which(R == "Upgrade ")] # Reduce upgrade
+    
+    vals2 <- c(which(R %in% vals), length(R) + 1) # See positions of Data
+    
+    l <- NULL # Extract values for each financial position
+    
+    for (m in 1:(length(vals2) - 1)){ # Values for each year
+      
+      ff <- vals2[m] + 1 # Value for first year 
+      fe <- vals2[m+1] - 1 # Value for last year 
+      
+      l <- rbind.data.frame(l, R[ff:fe]) } # Values for all years
+    
+    rownames(l) <- vals # Assign financial positions as row names
+    colnames(l) <- C # Assign years as column names
+    
+    if (sort){ l <- l[,sort(seq(ncol(l)), decreasing = T)] } # Sort
+    
+    if (is.null(L)){ L <- list(l) } else { L[[n]] <- l } } # Add to list
+    
+  names(L) <- x # Assign tickers for lists as names
   
-  D <- data.frame(R[seq(from = 2, to = length(R), by = 7)], # Previous Year
-                  R[seq(from = 3, to = length(R), by = 7)], # -1
-                  R[seq(from = 4, to = length(R), by = 7)], # -2
-                  R[seq(from = 5, to = length(R), by = 7)], # -3
-                  R[seq(from = 6, to = length(R), by = 7)]) # -4
-  
-  rownames(D) <- R[seq(from = 1, to = length(R), by = 7)] # Row names
-  colnames(D) <- C[seq(from = 2, to = length(C), by = 2)] # Column names
-  
-  if (isTRUE(sort)){ D[,sort(colnames(D))] } else { D } # Display
+  L # Display
 }
-income.statement.sa("ZIM") # Test
+income.statement.sa(c("AAPL", "ZIM")) # Test
