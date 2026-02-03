@@ -4,7 +4,7 @@ rus.dividends.full.cancel <- function(x){ # Cancelled Dividends Since 2014
   
   D <- NULL # Data Frame wtih Tickers, Dates and Dividend Amount
   
-  y <- seq("2026", from = "2014", by = 1) # Dates
+  y <- seq(format(Sys.Date(), "%Y"), from = "2014", by = 1) # Dates
   
   for (m in 1:length(y)){ i = y[m]# Get data for each year
     
