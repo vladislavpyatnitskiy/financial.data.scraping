@@ -4,16 +4,23 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
   
   P <- NULL # Data of Dividends with Time Series and Tickers
   
-  y <- seq("2023", from = "2014", by = 1) # Dates
+  y <- seq(format(Sys.Date(), "%Y"), from = "2014", by = 1) # Dates
   
   for (j in 1:length(x)){ L <- NULL # Data for each security
   
-    v <- x[j] # One by one
+    v <- x[j] # Separate stock by one
     
     for (m in 1:length(y)){ a <- y[m] # Get data for each year
     
       p <- read_html(sprintf("https://smart-lab.ru/dividends/index?year=%s",a))
-      
+
+      message(
+        sprintf(
+          "%s dividend data for %s year is downloaded (%s from %s)",
+          v, a, which(y == a), length(y)
+        )
+      )
+  
       f <- p %>% html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Table
       
       l <- NULL # Show only approved dividends 
@@ -48,7 +55,7 @@ rus.dividends <- function(x, s = NULL, e = NULL){ # Dividends of Russian Stocks
       
     message(
       sprintf(
-        "%s dividend data is downloaded (%s from %s)",
+        "%s dividend data is fully downloaded (%s from %s)",
         x[j], which(x == x[j]), length(x)
         )
       )
