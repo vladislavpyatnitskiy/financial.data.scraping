@@ -1,6 +1,7 @@
 lapply(c("moexer", "timeSeries", "xts"), require, character.only = T) # Libs 
 
-moex.correlation <- function(x){ # Correlation coefficients for Russian stocks
+# Correlation coefficients for Russian stocks
+moex.correlation <- function(x, method="spearman"){
   
   p <- NULL # Create an empty variable and get stock price data
   l <- NULL # to store start and end dates for available trading days
@@ -41,20 +42,20 @@ moex.correlation <- function(x){ # Correlation coefficients for Russian stocks
   rownames(l) <- x
   
   L <- list(
-    cor(diff(log(as.timeSeries(p)))[-1,]),
+    cor(diff(log(as.timeSeries(p)))[-1,], method=method),
     sprintf(
       "From %s to %s.", 
       rownames(p)[1],
       rownames(p)[nrow(p)]
-      ),
+    ),
     l
-    ) # returns matrix 
+  ) # returns matrix 
   
   names(L) <- c(
     "Correlation", 
     "Time Period for all Securities", 
     "Time Period for each security"
-    )
+  )
   
   L
 }
