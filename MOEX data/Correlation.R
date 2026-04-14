@@ -3,46 +3,85 @@ lapply(c("moexer", "timeSeries", "xts"), require, character.only = T) # Libs
 # Correlation coefficients for Russian stocks
 moex.correlation <- function(x, method="spearman"){
   
-  p <- NULL # Create an empty variable and get stock price data
-  l <- NULL # to store start and end dates for available trading days
+  p <- NULL
+  l <- NULL
   
-  for (a in x){ 
+  redom = list(
+    c("AGRO", "RAGR"), c("CIAN", "CNRU"), c("HHRU", "HEAD"), c("FIVE", "X5"),
+    c("FIXP", "FIXR"), c("YNDX", "YDEX"))
+  
+  from = "2007-01-01"
+  
+  R <- NULL
+  
+  for (n in 1:length(x)){
     
-    D = as.data.frame(get_candles(a,"2007-01-01",interval='daily')[,c(3,8)])
-    
-    D <- D[!duplicated(D),] # Remove duplicates
-    
-    D <- xts(D[,1], order.by = as.Date(D[,2])) # Move dates to row names
-    
-    D <- D[apply(D, 1, function(x) all(!is.na(x))),] # Get rid of NA
-    
-    colnames(D) <- x[n] # Put the tickers in data set
-    
-    D <- as.timeSeries(D) # Make it time series
-    
-    if (x[n] == "BELU"){ f <- which(rownames(D) == "2024-08-15")
-    
-      D[c(1:f),] <- D[c(1:f),] / 8 } # Adjustments for Novabev stock
-    
-    message(
-      sprintf(
-        "%s is downloaded (%s/%s)", 
-        a, which(x == a), length(x)
+    if (any(sapply(redom, function(redom_item) x[n] %in% redom_item))){
+      
+      f <- which(sapply(redom, function(redom_item) x[n] %in% redom_item))
+      
+      for (k in 1:length(redom[[f]])){
+        
+        a = as.data.frame(
+          get_candles(redom[[f]][k], from=from, interval='daily')[,c(3,8)]
+        )
+        
+        if (k == 2){ 
+          
+          message(
+            sprintf(
+              "%s is downloaded; %s from %s", x[n], which(x == x[n]), length(x)
+            )
+          )
+        }
+        
+        a <- a[!duplicated(a),] # Remove duplicates
+        
+        a <- xts(a[, 1], order.by = as.Date(a[, 2]))
+        
+        if (x[n] == "AGRO") a <- a / 7.01
+        
+        colnames(a) <- redom[[f]][2]
+        
+        if (is.null(R)) R <- data.frame(a) else R <- rbind.data.frame(R, a)
+      }
+    } else {
+      
+      a = as.data.frame(get_candles(x[n], from=from, interval='daily')[,c(3,8)])
+      
+      message(
+        sprintf(
+          "%s is downloaded; %s from %s", 
+          x[n], which(x == x[n]), length(x)
+        )
       )
-    )
-    l <- rbind.data.frame(l, cbind(rownames(D)[1], rownames(D)[nrow(D)]))
+      
+      a <- a[!duplicated(a),] # Remove duplicates
+      
+      a <- xts(a[, 1], order.by = as.Date(a[, 2]))
+      
+      colnames(a) <- x[n]
+      
+      R <- data.frame(a) 
+    }
     
-    p <- cbind(p, D) }
+    R <- as.timeSeries(R) # Make it time series
+    
+    if (x[n] == "BELU"){ j <- which(rownames(R) == "2024-08-15")
+    
+    R[c(1:j),] <- R[c(1:j),]/8 } # Adjustments for Novabev stock
+    
+    l <- rbind.data.frame(l, cbind(rownames(R)[1], rownames(R)[nrow(R)]))
+    p <- cbind(p, R) 
+    R <- NULL  # Reset R for next iteration
+  }
   
-  p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Eliminate NA
+  colnames(p) <- x # Column names
   
-  colnames(p) <- x
-  
-  colnames(l) <- c("Start Date", "End Date")
-  rownames(l) <- x
+  p <- p[apply(p, 1, function(x) all(!is.na(x))),] # Get rid of NA
   
   L <- list(
-    cor(diff(log(as.timeSeries(p)))[-1,], method=method),
+    cor(as.matrix(diff(log(as.timeSeries(p)))[-1,]), method=method),
     sprintf(
       "From %s to %s.", 
       rownames(p)[1],
@@ -56,6 +95,8 @@ moex.correlation <- function(x, method="spearman"){
     "Time Period for all Securities", 
     "Time Period for each security"
   )
+  
+  colnames(L[[3]]) <- c("Start Date", "End Date")
   
   L
 }
