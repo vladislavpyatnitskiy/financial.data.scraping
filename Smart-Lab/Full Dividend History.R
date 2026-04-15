@@ -1,6 +1,6 @@
 library("rvest") # Library
 
-rus.dividends.full <- function(x){ # Get Full Dividend History Since 2014
+rus.dividends.full <- function(){ # Get Full Dividend History Since 2014
   
   D <- NULL # Data Frame with Tickers, Dates and Dividend Amount
   
@@ -8,15 +8,23 @@ rus.dividends.full <- function(x){ # Get Full Dividend History Since 2014
   
   for (m in 1:length(y)){ # Get data for each year
     
-    f <- read_html(sprintf("%s%s", x, y[m])) %>% html_nodes('table') %>%
-      .[[1]] %>% html_nodes('tr') # Table
+    f <- read_html(
+      sprintf("%s%s", "https://smart-lab.ru/dividends/index?year=", y[m])
+      ) %>% html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Table
+    
+    message(
+      sprintf(
+        "Dividend data for %s year is downloaded (%s from %s)",
+        y[m], which(y == y[m]), length(y)
+      )
+    )
     
     l <- NULL # Show only Approved Dividends
     
     for (n in 1:length(f)){ 
       
       if (isTRUE(f[n] %>% html_attr('class') == "dividend_approved")){
-      
+        
         l <- c(l, f[n] %>% html_nodes('td') %>% html_text())
       }
     }
@@ -26,7 +34,7 @@ rus.dividends.full <- function(x){ # Get Full Dividend History Since 2014
       D <- rbind.data.frame(
         D, 
         cbind(l[(2+n*11)], l[7+n*11], as.numeric(gsub(",", ".", l[4+n*11])))
-        ) 
+      ) 
     }
   }
   
@@ -38,4 +46,4 @@ rus.dividends.full <- function(x){ # Get Full Dividend History Since 2014
   
   D # Display
 }
-rus.dividends.full("https://smart-lab.ru/dividends/index?year=")
+rus.dividends.full()
