@@ -1,6 +1,6 @@
 library("rvest") # Library
 
-ftse100.list.wiki <- function(x, yahoo = T){ # Tickers from FTSE 100
+ftse100.list.wiki <- function(yahoo = T){ # Tickers from FTSE 100
   
   f <- read_html("https://en.wikipedia.org/wiki/FTSE_100_Index") |> 
     html_element("#constituents") %>% html_nodes('tr') %>% html_nodes('td') %>% 
@@ -20,4 +20,4 @@ ftse100.list.wiki <- function(x, yahoo = T){ # Tickers from FTSE 100
   
   df
 }
-ftse100.list.wiki("FTSE_100_Index", yahoo = F) # Test
+ftse100.list.wiki(F) # Test
