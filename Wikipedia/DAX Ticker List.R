@@ -2,7 +2,7 @@ library("rvest")
 
 dax.list.wiki <- function(yahoo=F){ # List of tickers from German Index DAX
   
-  f <- dax_html |> 
+  f <- read_html("https://en.wikipedia.org/wiki/DAX") |> 
     html_element("#constituents") %>% html_nodes('tr') %>% html_nodes('td') %>% 
     html_text() # Get data
   
