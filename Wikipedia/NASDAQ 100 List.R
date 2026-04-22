@@ -1,11 +1,24 @@
 library("rvest") # Library
 
-nasdaq.list.wiki <- function(x){ # Get data with tickers
+nasdaq.list.wiki <- function(yahoo=T){ # Get data with tickers
   
-  s <- read_html(paste("https://en.wikipedia.org/wiki/", x, sep = "")) %>%
-    html_nodes('table') %>% .[[5]] %>% html_nodes('tr') %>%
-    html_nodes('td') %>% html_text() # HTML to get data
+  f <- read_html("https://en.wikipedia.org/wiki/Nasdaq-100") |> 
+    html_element("#constituents") %>% html_nodes('tr') %>% html_nodes('td') %>% 
+    html_text() # Get data
   
-  s[seq(from = 2, to = length(s), by = 4)] # Display
+  tickers <- f[seq(from = 1, to = length(f), by = 4)]
+
+  if (yahoo) return(tickers) # When you need only tickers
+
+  df <- data.frame(
+    tickers, # Tickers
+    f[seq(from = 2, to = length(f), by = 4)], # Company Names
+    f[seq(from = 3, to = length(f), by = 4)], # Sector
+    gsub("[\n]", "", f[seq(from = 4, to = length(f), by = 4)]) # Industry
+  )
+
+  colnames(df) <- c( "Ticker", "Company Name", "Sector", "Industry")
+
+  df # Display
 }
-nasdaq.list.wiki("Nasdaq-100") # Test
+nasdaq.list.wiki(F) # Test
