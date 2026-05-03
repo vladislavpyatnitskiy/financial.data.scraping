@@ -123,6 +123,8 @@ rus.dividends.bar.plt <- function(x, s = NULL, e = NULL){
   P <- as.numeric(P[,1])
   
   names(P) <- barnames
+
+  par(mar = c(6, 3.5, 6, 3.5)) # Define borders of the plot
   
   barplot(
     P, 
@@ -130,8 +132,6 @@ rus.dividends.bar.plt <- function(x, s = NULL, e = NULL){
     main = sprintf("%s Dividend Payments", ticker),
     ylim = c(0, max(P) * 1.01) 
     )
-  
-  par(mar = c(6, 3.5, 6, 3.5)) # Define borders of the plot
   
   grid(nx = 1, ny = NULL, lty = 3, col = "grey") # Horizontal lines
   
