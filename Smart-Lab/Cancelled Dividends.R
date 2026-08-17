@@ -1,15 +1,16 @@
 library("rvest") # Library
 
-rus.dividends.full.cancel <- function(x){ # Cancelled Dividends Since 2014
+rus.dividends.full.cancel <- function(){ # Cancelled Dividends Since 2014
   
-  D <- NULL # Data Frame wtih Tickers, Dates and Dividend Amount
+  D <- NULL # Data Frame with Tickers, Dates and Dividend Amount
   
   y <- seq(format(Sys.Date(), "%Y"), from = "2014", by = 1) # Dates
   
-  for (m in 1:length(y)){ i = y[m]# Get data for each year
+  for (m in 1:length(y)){ i = y[m] # Get data for each year
     
-    f <- read_html(sprintf("%s%s", x, i)) %>% html_nodes('table') %>%
-      .[[1]] %>% html_nodes('tr') # Table
+    f <- read_html(
+      sprintf("%s%s", "https://smart-lab.ru/dividends/index?year=", i)) %>% 
+      html_nodes('table') %>% .[[1]] %>% html_nodes('tr') # Table
     
     message(
       sprintf(
@@ -23,19 +24,21 @@ rus.dividends.full.cancel <- function(x){ # Cancelled Dividends Since 2014
     for (n in 1:length(f)){ if (isTRUE(f[n] %>% html_attr('class') ==
                                        "dividend_canceled")){
       
-        l <- c(l, f[n] %>% html_nodes('td') %>% html_text()) } }
+      l <- c(l, f[n] %>% html_nodes('td') %>% html_text()) } }
     
     for (n in 0:(length(l) / 11)){ # Data Frame with Ticker, Date and Dividend
       
       D <- rbind.data.frame(
         D, 
         cbind(
-          l[(2 + n * 11)], 
+          l[2 + n * 11], 
           l[7 + n * 11], 
           as.numeric(gsub(",", ".", l[4 + n * 11]))
-          )
-        ) } 
+        )
+      ) 
+    }
   }
+  
   colnames(D) <- c("Ticker", "Date", "Div Amount in Roubles") # Column Names
   
   D <- D[apply(D, 1, function(x) all(!is.na(x))),] # Get rid of NA
@@ -44,4 +47,4 @@ rus.dividends.full.cancel <- function(x){ # Cancelled Dividends Since 2014
   
   D # Display
 }
-rus.dividends.full.cancel("https://smart-lab.ru/dividends/index?year=")
+rus.dividends.full.cancel()
