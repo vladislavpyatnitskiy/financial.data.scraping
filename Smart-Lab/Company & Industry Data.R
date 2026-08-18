@@ -1,20 +1,46 @@
 library("rvest") # Library
 
-smartlab.sectors.all <- function(x){ # Data Frames with companies & industries
+smartlab.sectors.all <- function() {
   
-  D <- NULL # variable for data frame
+  # Some sites reject requests without a User-Agent header
+  session <- rvest::session(
+    "https://smart-lab.ru/forum/sectors/", 
+    httr::user_agent("Mozilla/5.0")
+    )
   
-  for (n in 1:27){ p <- read_html(sprintf("https://smart-lab.ru/forum/%s/",
-                                          x)) %>% html_nodes('body')
+  # Walk through all h2 (sector headings) and ul (company lists) elements
+  # in the order they appear on the page. Every ul is treated as belonging
+  # to the most recently seen h2.
+  nodes <- session$response %>% read_html() %>% html_elements("h2, ul")
   
-    d <- data.frame(p %>% html_nodes('ul') %>% .[[n + 1]] %>%
-                      html_nodes('li') %>% html_elements('a') %>% html_text(),
-                    p %>% html_nodes('h2') %>% .[[n]] %>% html_text() ) # Join
+  current_sector <- NA_character_
+  rows <- list()
+  
+  for (node in nodes) { tag <- html_name(node)
     
-    colnames(d) <- c("Компания", "Сектор") # Set up Column Names
-    
-    D <- rbind(D, d) } # Join data of all industries
-    
-  D # Display
+    if (tag == "h2") { current_sector <- html_text(node, trim = TRUE)
+      
+    } else if (tag == "ul" && !is.na(current_sector)) {
+      
+      links <- node %>% html_elements("li > a")
+      if (length(links) == 0) next
+      
+      company <- html_text(links, trim = TRUE)
+      href <- html_attr(links, "href")
+      
+      # Keep only real company links (they point to /forum/<TICKER>)
+      company <- company[grepl("/forum/", href, fixed = TRUE)]
+      
+      if (length(company) > 0) {
+        rows[[length(rows) + 1]] <- data.frame(
+          company = company,
+          sector  = current_sector,
+          stringsAsFactors = FALSE
+        )
+      }
+    }
+  }
+  
+  unique(do.call(rbind, rows))
 }
-smartlab.sectors.all("sectors") # Test
+smartlab.sectors.all()
